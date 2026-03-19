@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Tabla Bingo</title>
+
+<style>
+body{
+    margin:0;
+    background: radial-gradient(circle, #1a0033, #000);
+    color:white;
+    font-family:Arial;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+}
+
+/* LOGO */
+.logo{
+    width:120px;
+    margin-bottom:10px;
+}
+
+/* CONTENEDOR */
+.contenedor{
+    background:rgba(0,0,0,0.7);
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 25px #ffd700;
+    text-align:center;
+}
+
+/* TITULO */
+.titulo{
+    font-size:24px;
+    color:#ffd700;
+    margin-bottom:10px;
+    font-weight:bold;
+}
+
+/* TABLA */
+.tabla{
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:8px;
+    width:90vw;
+    max-width:350px;
+}
+
+/* CELDAS */
+.celda{
+    background:#111;
+    padding:18px;
+    text-align:center;
+    font-size:22px;
+    border-radius:12px;
+    font-weight:bold;
+    border:2px solid #444;
+    transition:0.15s;
+    user-select:none;
+}
+
+.celda:active{
+    transform:scale(0.9);
+}
+
+/* ENCABEZADO */
+.letra{
+    background:#ffd700;
+    color:black;
+    font-size:22px;
+}
+
+/* MARCADO */
+.marcado{
+    background:#00ff00;
+    color:black;
+    box-shadow:0 0 15px #00ff00;
+    transform:scale(1.1);
+}
+
+/* HOVER */
+.celda:hover{
+    background:#222;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<img src="logo.png" class="logo">
+
+<div class="titulo">LA TERRAZA BINGO</div>
+
+<div id="tabla" class="tabla"></div>
+
+</div>
+
+<script>
+
+// 🔥 FUNCIÓN ORIGINAL (MISMAS TABLAS TUYAS)
+function generarTablaPorID(id){
+
+    let seed = 12345;
+
+    function random(){
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+    }
+
+    function randomUnique(min,max,count){
+        let nums=[];
+        while(nums.length<count){
+            let n=Math.floor(random()*(max-min+1))+min;
+            if(!nums.includes(n)) nums.push(n);
+        }
+        return nums;
+    }
+
+    let tabla;
+
+    for(let t=1;t<=id;t++){
+
+        let B=randomUnique(1,15,5);
+        let I=randomUnique(16,30,5);
+        let N=randomUnique(31,45,5);
+        let G=randomUnique(46,60,5);
+        let O=randomUnique(61,75,5);
+
+        tabla=[];
+
+        for(let i=0;i<5;i++){
+            tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+        }
+
+        tabla[2][2]="T"+String(t).padStart(3,'0');
+    }
+
+    return tabla;
+}
+
+// 📌 OBTENER TABLA DEL LINK
+const params = new URLSearchParams(window.location.search);
+let id = params.get("tabla");
+
+if(!id){
+    id = prompt("Ingrese su número de tabla (Ej: 25)");
+}
+
+id = parseInt(id);
+
+if(isNaN(id) || id < 1 || id > 600){
+    alert("Número de tabla inválido");
+    id = 1;
+}
+
+let tabla = generarTablaPorID(id);
+
+// 🎯 DIBUJAR TABLA
+const contenedor = document.getElementById("tabla");
+
+const letras = ["B","I","N","G","O"];
+
+// fila letras
+letras.forEach(l=>{
+    let d = document.createElement("div");
+    d.className="celda letra";
+    d.textContent=l;
+    contenedor.appendChild(d);
+});
+
+// números
+for(let i=0;i<5;i++){
+    for(let j=0;j<5;j++){
+
+        let valor = tabla[i][j];
+
+        let d = document.createElement("div");
+        d.className="celda";
+
+        d.textContent = valor;
+
+        if(typeof valor === "number"){
+            d.onclick = ()=> {
+    d.classList.toggle("marcado");
+
+    if(navigator.vibrate){
+        navigator.vibrate(50);
+    }
+};
+        }
+
+        contenedor.appendChild(d);
+    }
+}
+
+</script>
+
+</body>
+</html>
