@@ -72,7 +72,7 @@ body{
 }
 
 .marcado{
-    background:#00ff00;
+    background:#00ff00 !important;
     color:black;
     box-shadow:0 0 15px #00ff00;
     transform:scale(1.1);
@@ -194,7 +194,8 @@ ids.forEach(id => {
 
             if(typeof valor === "number"){
                 d.onclick = ()=>{
-                    d.classList.toggle("marcado");
+                    // ✅ siempre marcado al hacer clic
+                    d.classList.add("marcado");
                     // 🔊 reproducir sonido
                     sonido.currentTime = 0;
                     sonido.play().catch(e=>{});
@@ -213,7 +214,6 @@ ids.forEach(id => {
     contenedor.appendChild(bloque);
 
 });
-
 </script>
 
 </body>
