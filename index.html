@@ -147,6 +147,9 @@ if(!lista){
 
 let ids = lista.split(",").map(n => parseInt(n));
 
+// 🔊 PREPARAR SONIDO CLIP
+const clipAudio = new Audio("clip.mp3"); // ⚠️ Debes subir clip.mp3 junto al HTML
+
 // 🎯 DIBUJAR TODAS LAS TABLAS
 const contenedor = document.getElementById("tabla");
 
@@ -187,8 +190,9 @@ ids.forEach(id => {
 
             if(typeof valor === "number"){
                 d.onclick = ()=>{
-                    // ✅ MARCADO FIJO, no cambia
                     d.classList.toggle("marcado");
+                    clipAudio.currentTime = 0; // 🔄 Reinicia el sonido
+                    clipAudio.play();         // 🔊 Reproduce clip
                 };
             }
 
