@@ -72,7 +72,7 @@ body{
 }
 
 .marcado{
-    background:#00ff00 !important;
+    background:#00ff00;
     color:black;
     box-shadow:0 0 15px #00ff00;
     transform:scale(1.1);
@@ -94,9 +94,6 @@ body{
 <div class="titulo">LA TERRAZA BINGO</div>
 
 <div id="tabla"></div>
-
-<!-- Sonido corto tipo clip -->
-<audio id="clipSound" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio>
 
 </div>
 
@@ -157,6 +154,9 @@ let ids = lista.split(",").map(n => parseInt(n));
 // 🎯 DIBUJAR TODAS LAS TABLAS
 const contenedor = document.getElementById("tabla");
 
+// 🔊 SONIDO PARA CELDAS
+const sonido = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+
 ids.forEach(id => {
 
     let tabla = generarTablaPorID(id);
@@ -194,12 +194,14 @@ ids.forEach(id => {
 
             if(typeof valor === "number"){
                 d.onclick = ()=>{
-                    // ✅ Siempre se queda marcado
-                    d.classList.add("marcado");
-                    // ✅ Sonido
-                    const sound = document.getElementById("clipSound");
-                    sound.currentTime = 0;
-                    sound.play();
+                    d.classList.toggle("marcado");
+                    // 🔊 reproducir sonido
+                    sonido.currentTime = 0;
+                    sonido.play().catch(e=>{});
+                    // 📱 vibrar si es móvil
+                    if(navigator.vibrate){
+                        navigator.vibrate(100);
+                    }
                 };
             }
 
@@ -211,6 +213,7 @@ ids.forEach(id => {
     contenedor.appendChild(bloque);
 
 });
+
 </script>
 
 </body>
