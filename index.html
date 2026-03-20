@@ -154,6 +154,9 @@ let ids = lista.split(",").map(n => parseInt(n));
 // 🎯 DIBUJAR TODAS LAS TABLAS
 const contenedor = document.getElementById("tabla");
 
+// 🔊 SONIDO PARA CELDAS
+const sonido = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+
 ids.forEach(id => {
 
     let tabla = generarTablaPorID(id);
@@ -192,6 +195,13 @@ ids.forEach(id => {
             if(typeof valor === "number"){
                 d.onclick = ()=>{
                     d.classList.toggle("marcado");
+                    // 🔊 reproducir sonido
+                    sonido.currentTime = 0;
+                    sonido.play().catch(e=>{});
+                    // 📱 vibrar si es móvil
+                    if(navigator.vibrate){
+                        navigator.vibrate(100);
+                    }
                 };
             }
 
