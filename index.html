@@ -154,8 +154,13 @@ let ids = lista.split(",").map(n => parseInt(n));
 // 🎯 DIBUJAR TODAS LAS TABLAS
 const contenedor = document.getElementById("tabla");
 
-// 🔊 SONIDO PARA CELDAS
-const sonido = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+// 🔊 SONIDOS ALEATORIOS
+const sonidos = [
+    'https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg',
+    'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg',
+    'https://actions.google.com/sounds/v1/cartoon/woodpecker_peck.ogg',
+    'https://actions.google.com/sounds/v1/cartoon/metal_hit.ogg'
+].map(url => new Audio(url));
 
 ids.forEach(id => {
 
@@ -195,10 +200,11 @@ ids.forEach(id => {
             if(typeof valor === "number"){
                 d.onclick = ()=>{
                     d.classList.toggle("marcado");
-                    // 🔊 reproducir sonido
-                    sonido.currentTime = 0;
-                    sonido.play().catch(e=>{});
-                    // 📱 vibrar si es móvil
+                    // 🔊 SONIDO ALEATORIO
+                    let s = sonidos[Math.floor(Math.random()*sonidos.length)];
+                    s.currentTime = 0;
+                    s.play().catch(e=>{});
+                    // 📱 VIBRACIÓN
                     if(navigator.vibrate){
                         navigator.vibrate(100);
                     }
