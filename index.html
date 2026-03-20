@@ -61,6 +61,10 @@ body{
     user-select:none;
 }
 
+.celda:active{
+    transform:scale(0.9);
+}
+
 .letra{
     background:#ffd700;
     color:black;
@@ -68,8 +72,8 @@ body{
 }
 
 .marcado{
-    background:#00ff00 !important;
-    color:black !important;
+    background:#00ff00;
+    color:black;
     box-shadow:0 0 15px #00ff00;
     transform:scale(1.1);
 }
@@ -90,6 +94,8 @@ body{
 <div class="titulo">LA TERRAZA BINGO</div>
 
 <div id="tabla"></div>
+
+<audio id="clipSound" src="clip.mp3" preload="auto"></audio>
 
 </div>
 
@@ -147,9 +153,6 @@ if(!lista){
 
 let ids = lista.split(",").map(n => parseInt(n));
 
-// 🔊 PREPARAR SONIDO CLIP
-const clipAudio = new Audio("clip.mp3"); // ⚠️ Debes subir clip.mp3 junto al HTML
-
 // 🎯 DIBUJAR TODAS LAS TABLAS
 const contenedor = document.getElementById("tabla");
 
@@ -190,9 +193,9 @@ ids.forEach(id => {
 
             if(typeof valor === "number"){
                 d.onclick = ()=>{
-                    d.classList.toggle("marcado");
-                    clipAudio.currentTime = 0; // 🔄 Reinicia el sonido
-                    clipAudio.play();         // 🔊 Reproduce clip
+                    d.classList.add("marcado"); // ahora siempre se queda verde
+                    document.getElementById("clipSound").currentTime = 0;
+                    document.getElementById("clipSound").play();
                 };
             }
 
