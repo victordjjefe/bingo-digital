@@ -1,25 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <style>
-  body {
-    text-align: center;
-  }
-
-  table {
-    margin: auto;
-    border-collapse: collapse;
-  }
-
-  td {
-  border: 1px solid black;
-  width: 60px;
-  height: 60px;
-  text-align: center;
-  vertical-align: middle; /* 👈 centra vertical */
-  font-size: 20px;
-}
-</style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mi Tabla Bingo</title>
@@ -33,17 +14,16 @@ body{
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:center;
-    height:100vh;
+    justify-content:flex-start;
+    min-height:100vh;
+    padding:20px;
 }
 
-/* LOGO */
 .logo{
     width:120px;
     margin-bottom:10px;
 }
 
-/* CONTENEDOR */
 .contenedor{
     background:rgba(0,0,0,0.7);
     padding:20px;
@@ -52,7 +32,6 @@ body{
     text-align:center;
 }
 
-/* TITULO */
 .titulo{
     font-size:24px;
     color:#ffd700;
@@ -60,15 +39,14 @@ body{
     font-weight:bold;
 }
 
-/* TABLA */
 .tabla{
     display:grid;
     grid-template-columns: repeat(5, 70px);
     gap:8px;
     justify-content:center;
+    margin-bottom:25px;
 }
 
-/* CELDAS */
 .celda{
     background:#111;
     display:flex;
@@ -87,14 +65,12 @@ body{
     transform:scale(0.9);
 }
 
-/* ENCABEZADO */
 .letra{
     background:#ffd700;
     color:black;
     font-size:22px;
 }
 
-/* MARCADO */
 .marcado{
     background:#00ff00;
     color:black;
@@ -102,7 +78,6 @@ body{
     transform:scale(1.1);
 }
 
-/* HOVER */
 .celda:hover{
     background:#222;
     cursor:pointer;
@@ -118,13 +93,13 @@ body{
 
 <div class="titulo">LA TERRAZA BINGO</div>
 
-<div id="tabla" class="tabla"></div>
+<div id="tabla"></div>
 
 </div>
 
 <script>
 
-// 🔥 FUNCIÓN ORIGINAL (MISMAS TABLAS TUYAS)
+// 🔥 MISMA FUNCIÓN ORIGINAL (NO SE TOCA)
 function generarTablaPorID(id){
 
     let seed = 12345;
@@ -165,60 +140,69 @@ function generarTablaPorID(id){
     return tabla;
 }
 
-// 📌 OBTENER TABLA DEL LINK
+// 🔥 NUEVA FORMA DE RECIBIR TABLAS
 const params = new URLSearchParams(window.location.search);
-let id = params.get("tabla");
+let lista = params.get("tablas");
 
-if(!id){
-    id = prompt("Ingrese su número de tabla (Ej: 25)");
+if(!lista){
+    alert("No tienes tablas asignadas");
+    throw new Error("Sin tablas");
 }
 
-id = parseInt(id);
+let ids = lista.split(",").map(n => parseInt(n));
 
-if(isNaN(id) || id < 1 || id > 600){
-    alert("Número de tabla inválido");
-    id = 1;
-}
-
-let tabla = generarTablaPorID(id);
-
-// 🎯 DIBUJAR TABLA
+// 🎯 DIBUJAR TODAS LAS TABLAS
 const contenedor = document.getElementById("tabla");
 
-const letras = ["B","I","N","G","O"];
+ids.forEach(id => {
 
-// fila letras
-letras.forEach(l=>{
-    let d = document.createElement("div");
-    d.className="celda letra";
-    d.textContent=l;
-    contenedor.appendChild(d);
-});
+    let tabla = generarTablaPorID(id);
 
-// números
-for(let i=0;i<5;i++){
-    for(let j=0;j<5;j++){
+    let bloque = document.createElement("div");
 
-        let valor = tabla[i][j];
+    let titulo = document.createElement("div");
+    titulo.textContent = "TABLA T" + String(id).padStart(3,'0');
+    titulo.style.color = "#ffd700";
+    titulo.style.marginBottom = "5px";
+    titulo.style.fontWeight = "bold";
 
+    bloque.appendChild(titulo);
+
+    let grid = document.createElement("div");
+    grid.className = "tabla";
+
+    const letras = ["B","I","N","G","O"];
+
+    letras.forEach(l=>{
         let d = document.createElement("div");
-        d.className="celda";
+        d.className="celda letra";
+        d.textContent=l;
+        grid.appendChild(d);
+    });
 
-        d.textContent = valor;
+    for(let i=0;i<5;i++){
+        for(let j=0;j<5;j++){
 
-        if(typeof valor === "number"){
-            d.onclick = ()=> {
-    d.classList.toggle("marcado");
+            let valor = tabla[i][j];
 
-    if(navigator.vibrate){
-        navigator.vibrate(50);
-    }
-};
+            let d = document.createElement("div");
+            d.className="celda";
+            d.textContent = valor;
+
+            if(typeof valor === "number"){
+                d.onclick = ()=>{
+                    d.classList.toggle("marcado");
+                };
+            }
+
+            grid.appendChild(d);
         }
-
-        contenedor.appendChild(d);
     }
-}
+
+    bloque.appendChild(grid);
+    contenedor.appendChild(bloque);
+
+});
 
 </script>
 
