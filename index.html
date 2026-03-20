@@ -194,9 +194,9 @@ ids.forEach(id => {
 
             if(typeof valor === "number"){
                 d.onclick = ()=>{
-                    // ✅ siempre marcado al hacer clic
-                    d.classList.add("marcado");
-                    // 🔊 reproducir sonido
+                    // ✅ alternar marcado/desmarcado
+                    d.classList.toggle("marcado");
+                    // 🔊 reproducir sonido al marcar
                     sonido.currentTime = 0;
                     sonido.play().catch(e=>{});
                     // 📱 vibrar si es móvil
