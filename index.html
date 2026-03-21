@@ -45,7 +45,7 @@ body{
 
 .tabla{
     display:grid;
-    grid-template-columns: repeat(5, 70px);
+    grid-template-columns: repeat(5, minmax(60px, 12vw));
     gap:8px;
     justify-content:center;
     margin-bottom:25px;
@@ -56,8 +56,8 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
-    height:60px;
-    font-size:22px;
+    aspect-ratio:1/1;
+    font-size:clamp(18px,3vw,28px);
     border-radius:12px;
     font-weight:bold;
     border:2px solid #444;
