@@ -93,7 +93,7 @@ body{
 
 <div class="contenedor">
 
-<img src="https://raw.githubusercontent.com/victordjjefe/bingo-digital/refs/heads/main/susurros.png" class="logo">
+<img id="logo" class="logo">
 
 <div class="titulo">LA TERRAZA BINGO</div>
 
@@ -146,6 +146,14 @@ function generarTablaPorID(id){
 
 // 🔥 NUEVA FORMA DE RECIBIR TABLAS
 const params = new URLSearchParams(window.location.search);
+    const logoURL = params.get("logo");
+const logo = document.getElementById("logo");
+
+if(logoURL){
+    logo.src = logoURL;
+}else{
+    logo.src = "https://raw.githubusercontent.com/victordjjefe/bingo-digital/refs/heads/main/susurros.png";
+}
 let lista = params.get("tablas");
 
 if(!lista){
