@@ -150,9 +150,9 @@ const params = new URLSearchParams(window.location.search);
 const logo = document.getElementById("logo");
 
 if(logoURL){
-    logo.src = logoURL;
+    logo.src = "https://raw.githubusercontent.com/victordjjefe/bingo-digital/refs/heads/main/" + logoURL + ".png";
 }else{
-    logo.src = "https://raw.githubusercontent.com/victordjjefe/bingo-digital/refs/heads/main/laterraza.png";
+    logo.src = "https://raw.githubusercontent.com/victordjjefe/bingo-digital/refs/heads/main/logo.png";
 }
 let lista = params.get("tablas");
 
