@@ -149,14 +149,18 @@ const params = new URLSearchParams(window.location.search);
     // NUEVO BLOQUE
 const vence = params.get("vence");
 
-if(vence){
-    const hoy = new Date();
-    const fechaLimite = new Date(vence + "T23:59:59");
+// si el link no tiene fecha, se bloquea
+if(!vence){
+    document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;color:red;'>⚠️ Este enlace ya no es válido</h1>";
+    throw new Error("link inválido");
+}
 
-    if(hoy > fechaLimite){
-        document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;color:red;'>⚠️ Esta tabla ya no es válida</h1>";
-        throw new Error("tabla vencida");
-    }
+const hoy = new Date();
+const fechaLimite = new Date(vence + "T23:59:59");
+
+if(hoy > fechaLimite){
+    document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;color:red;'>⚠️ Esta tabla pertenece a un bingo anterior</h1>";
+    throw new Error("tabla vencida");
 }
     const logoURL = params.get("logo");
 const logo = document.getElementById("logo");
