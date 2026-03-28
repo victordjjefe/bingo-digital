@@ -122,6 +122,7 @@ text-align:center;
 <div class="contenedor">
 
 <div class="topBar">
+
 <img id="logo" class="logo">
 
 <button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
@@ -142,7 +143,14 @@ text-align:center;
 
 </div>
 
+<div id="editorPatron" style="display:none;margin-bottom:10px;">
+<div style="margin-bottom:5px;">Selecciona el patrón:</div>
+<div id="gridPatron" class="tabla"></div>
+<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
+</div>
+
 <div class="titulo">LA TERRAZA BINGO</div>
+
 <div id="tabla"></div>
 
 </div>
@@ -151,24 +159,31 @@ text-align:center;
 
 <script>
 
-// GENERAR TABLA
+// TABLA POR ID
 
 function generarTablaPorID(id){
 
-let seed = 12345;
+let seed=12345;
 
 function random(){
-seed = (seed * 9301 + 49297) % 233280;
-return seed / 233280;
+seed=(seed*9301+49297)%233280;
+return seed/233280;
 }
 
 function randomUnique(min,max,count){
+
 let nums=[];
+
 while(nums.length<count){
+
 let n=Math.floor(random()*(max-min+1))+min;
+
 if(!nums.includes(n)) nums.push(n);
+
 }
+
 return nums;
+
 }
 
 let tabla;
@@ -184,7 +199,9 @@ let O=randomUnique(61,75,5);
 tabla=[];
 
 for(let i=0;i<5;i++){
+
 tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+
 }
 
 tabla[2][2]="T"+String(t).padStart(3,'0');
@@ -195,14 +212,20 @@ return tabla;
 
 }
 
-// MODOS
+// VARIABLES
 
 let modoActual="";
-let patronPersonalizado = Array(5).fill().map(()=>Array(5).fill(false));
+let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
+
+// MOSTRAR MODOS
 
 function mostrarModos(){
+
 document.getElementById("modoSelect").style.display="block";
+
 }
+
+// SELECCIONAR MODO
 
 function seleccionarModo(){
 
@@ -210,17 +233,75 @@ modoActual=document.getElementById("modoSelect").value;
 
 if(modoActual==="Personalizado"){
 
-alert("Ahora selecciona el patrón tocando las casillas");
+document.getElementById("editorPatron").style.display="block";
+
+crearEditorPatron();
+
+}else{
+
+document.getElementById("editorPatron").style.display="none";
 
 }
 
 }
 
-// VALIDACIÓN
+// EDITOR PATRON
+
+function crearEditorPatron(){
+
+const grid=document.getElementById("gridPatron");
+
+grid.innerHTML="";
+
+for(let i=0;i<5;i++){
+
+for(let j=0;j<5;j++){
+
+let d=document.createElement("div");
+
+d.className="celda";
+
+if(i===2 && j===2){
+
+d.textContent="★";
+
+d.style.background="#ffd700";
+
+}else{
+
+d.onclick=()=>{
+
+patronPersonalizado[i][j]=!patronPersonalizado[i][j];
+
+d.classList.toggle("patron");
+
+};
+
+}
+
+grid.appendChild(d);
+
+}
+
+}
+
+}
+
+// GUARDAR PATRON
+
+function guardarPatron(){
+
+document.getElementById("editorPatron").style.display="none";
+
+alert("Patrón guardado");
+
+}
+
+// VERIFICAR
 
 function verificar(m){
 
-const c = (i,j)=> m[i][j] || (i===2 && j===2);
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
 switch(modoActual){
 
@@ -229,15 +310,15 @@ return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
 c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
 
 case "Letra L":
-return [0,1,2,3,4].every(i=>c(i,0)) &&
+return [0,1,2,3,4].every(i=>c(i,0))&&
 [0,1,2,3,4].every(j=>c(4,j));
 
 case "Letra H":
-return [0,1,2,3,4].every(i=>c(i,0)&&c(i,4)) &&
+return [0,1,2,3,4].every(i=>c(i,0)&&c(i,4))&&
 [0,1,2,3,4].every(j=>c(2,j));
 
 case "Letra T":
-return [0,1,2,3,4].every(j=>c(0,j)) &&
+return [0,1,2,3,4].every(j=>c(0,j))&&
 [0,1,2,3,4].every(i=>c(i,2));
 
 case "Diagonal Izq":
@@ -250,7 +331,7 @@ case "4 Esquinas":
 return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
 
 case "Forma O":
-return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j)) &&
+return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j))&&
 [1,2,3].every(i=>c(i,0)&&c(i,4));
 
 case "Tabla Llena":
@@ -259,63 +340,79 @@ return m.flat().every(v=>v);
 case "Personalizado":
 
 for(let i=0;i<5;i++){
+
 for(let j=0;j<5;j++){
 
-if(patronPersonalizado[i][j] && !m[i][j] && !(i===2 && j===2)){
+if(patronPersonalizado[i][j]&&!m[i][j]&&!(i===2&&j===2)){
+
 return false;
+
 }
 
 }
+
 }
 
 return true;
 
 default:
+
 return false;
 
 }
 
 }
 
-// ANIMACIÓN
+// ANIMACION
 
 function mostrarBingo(){
 
 let contenedor=document.querySelector(".contenedor");
+
 let anim=document.getElementById("bingoAnim");
 
 contenedor.style.display="none";
+
 anim.style.display="block";
 
-let audio=new Audio("https://actions.google.com/sounds/v1/crowd/applause.ogg");
-audio.play().catch(e=>{});
-
 setTimeout(()=>{
+
 anim.style.display="none";
+
 contenedor.style.display="block";
+
 },5000);
 
 }
 
-// PARAMETROS LINK
+// PARAMS
 
 const params=new URLSearchParams(window.location.search);
+
 const vence=params.get("vence");
 
 if(!vence){
+
 document.body.innerHTML="<h1 style='color:red;text-align:center;'>Link inválido</h1>";
+
 throw new Error();
+
 }
 
 const hoy=new Date();
+
 const fechaLimite=new Date(vence+"T23:59:59");
 
 if(hoy>fechaLimite){
+
 document.body.innerHTML="<h1 style='color:red;text-align:center;'>Tabla vencida</h1>";
+
 throw new Error();
+
 }
 
 const logoURL=params.get("logo");
+
 const logo=document.getElementById("logo");
 
 logo.src=logoURL
@@ -323,6 +420,7 @@ logo.src=logoURL
 : "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
 
 let lista=params.get("tablas");
+
 let ids=lista.split(",").map(n=>parseInt(n));
 
 const contenedor=document.getElementById("tabla");
@@ -334,52 +432,59 @@ let tabla=generarTablaPorID(id);
 let bloque=document.createElement("div");
 
 let titulo=document.createElement("div");
+
 titulo.textContent="TABLA T"+String(id).padStart(3,'0');
+
 titulo.style.color="#ffd700";
+
 titulo.style.marginBottom="5px";
 
 bloque.appendChild(titulo);
 
 let grid=document.createElement("div");
+
 grid.className="tabla";
 
 const letras=["B","I","N","G","O"];
 
 letras.forEach(l=>{
+
 let d=document.createElement("div");
+
 d.className="celda letra";
+
 d.textContent=l;
+
 grid.appendChild(d);
+
 });
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
 
 for(let i=0;i<5;i++){
+
 for(let j=0;j<5;j++){
 
 let valor=tabla[i][j];
 
 let d=document.createElement("div");
+
 d.className="celda";
+
 d.textContent=valor;
 
 if(typeof valor==="number"){
 
 d.onclick=()=>{
 
-if(modoActual==="Personalizado"){
-
-patronPersonalizado[i][j]=!patronPersonalizado[i][j];
-d.classList.toggle("patron");
-return;
-
-}
-
 d.classList.toggle("marcado");
+
 estado[i][j]=d.classList.contains("marcado");
 
 if(verificar(estado)){
+
 mostrarBingo();
+
 }
 
 };
@@ -389,9 +494,11 @@ mostrarBingo();
 grid.appendChild(d);
 
 }
+
 }
 
 bloque.appendChild(grid);
+
 contenedor.appendChild(bloque);
 
 });
