@@ -31,7 +31,7 @@ margin:auto;
 display:flex;
 flex-direction:column;
 align-items:center;
-gap:6px;
+gap:5px;
 }
 
 .botonModo{
@@ -45,6 +45,12 @@ cursor:pointer;
 font-weight:bold;
 }
 
+.selectModo{
+padding:6px;
+border-radius:8px;
+display:none;
+}
+
 .botonLimpiar{
 padding:5px 10px;
 font-size:13px;
@@ -52,25 +58,6 @@ background:#ff4444;
 color:white;
 border:none;
 border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.modos{
-display:none;
-flex-wrap:wrap;
-justify-content:center;
-gap:5px;
-max-width:360px;
-}
-
-.modos button{
-padding:5px 8px;
-font-size:12px;
-border:none;
-border-radius:6px;
-background:#00bfff;
-color:black;
 cursor:pointer;
 font-weight:bold;
 }
@@ -150,20 +137,19 @@ text-align:center;
 
 <button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
 
-<div id="listaModos" class="modos">
-
-<button onclick="setModo('Letra X')">Letra X</button>
-<button onclick="setModo('Letra L')">Letra L</button>
-<button onclick="setModo('Letra H')">Letra H</button>
-<button onclick="setModo('Letra T')">Letra T</button>
-<button onclick="setModo('Diagonal Izq')">Diagonal Izq</button>
-<button onclick="setModo('Diagonal Der')">Diagonal Der</button>
-<button onclick="setModo('4 Esquinas')">4 Esquinas</button>
-<button onclick="setModo('Forma O')">Forma O</button>
-<button onclick="setModo('Tabla Llena')">Tabla Llena</button>
-<button onclick="setModo('Personalizado')">Personalizado</button>
-
-</div>
+<select id="modoSelect" class="selectModo" onchange="seleccionarModo()">
+<option value="">-- Elegir modo --</option>
+<option>Letra X</option>
+<option>Letra L</option>
+<option>Letra H</option>
+<option>Letra T</option>
+<option>Diagonal Izq</option>
+<option>Diagonal Der</option>
+<option>4 Esquinas</option>
+<option>Forma O</option>
+<option>Tabla Llena</option>
+<option>Personalizado</option>
+</select>
 
 <button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
 
@@ -184,6 +170,18 @@ text-align:center;
 <div id="bingoAnim">🎉 BINGO 🎉</div>
 
 <script>
+
+let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+
+function beep(){
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
+o.connect(g);
+g.connect(audioCtx.destination);
+o.frequency.value=800;
+o.start();
+g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
+}
 
 function generarTablaPorID(id){
 
@@ -239,18 +237,15 @@ let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
 
 function mostrarModos(){
-
-let lista=document.getElementById("listaModos");
-
-lista.style.display = lista.style.display=="flex" ? "none" : "flex";
-
+let s=document.getElementById("modoSelect");
+s.style.display=s.style.display==="block"?"none":"block";
 }
 
-function setModo(m){
+function seleccionarModo(){
 
-modoActual=m;
+modoActual=document.getElementById("modoSelect").value;
 
-if(m==="Personalizado"){
+if(modoActual==="Personalizado"){
 document.getElementById("editorPatron").style.display="block";
 crearEditorPatron();
 }else{
@@ -274,8 +269,7 @@ tabla[i][j]=false;
 });
 
 modoActual="";
-
-document.getElementById("listaModos").style.display="none";
+document.getElementById("modoSelect").value="";
 document.getElementById("editorPatron").style.display="none";
 
 }
@@ -283,6 +277,7 @@ document.getElementById("editorPatron").style.display="none";
 function crearEditorPatron(){
 
 const grid=document.getElementById("gridPatron");
+
 grid.innerHTML="";
 
 for(let i=0;i<5;i++){
@@ -316,10 +311,8 @@ grid.appendChild(d);
 }
 
 function guardarPatron(){
-
 document.getElementById("editorPatron").style.display="none";
 alert("Patrón guardado");
-
 }
 
 function verificar(m){
@@ -396,21 +389,6 @@ contenedor.style.display="block";
 
 const params=new URLSearchParams(window.location.search);
 
-const vence=params.get("vence");
-
-if(!vence){
-document.body.innerHTML="<h1 style='color:red;text-align:center;'>Link inválido</h1>";
-throw new Error();
-}
-
-const hoy=new Date();
-const fechaLimite=new Date(vence+"T23:59:59");
-
-if(hoy>fechaLimite){
-document.body.innerHTML="<h1 style='color:red;text-align:center;'>Tabla vencida</h1>";
-throw new Error();
-}
-
 const logoURL=params.get("logo");
 const logo=document.getElementById("logo");
 
@@ -463,6 +441,8 @@ d.textContent=valor;
 if(typeof valor==="number"){
 
 d.onclick=()=>{
+
+beep();
 
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
