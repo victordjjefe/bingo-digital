@@ -121,6 +121,16 @@ color:black;
 box-shadow:0 0 10px #00ff00;
 }
 
+/* 🔥 NUEVO: animación centro */
+.centro{
+animation: brilloCentro 1.5s infinite alternate;
+}
+
+@keyframes brilloCentro{
+0%{ box-shadow:0 0 10px #00ff00; }
+100%{ box-shadow:0 0 25px #00ff00; }
+}
+
 .patron{
 background:#00bfff !important;
 }
@@ -427,8 +437,6 @@ let tabla=generarTablaPorID(id);
 
 let bloque=document.createElement("div");
 
-/* 🔴 ELIMINADO TITULO */
-
 let grid=document.createElement("div");
 grid.className="tabla";
 
@@ -442,7 +450,7 @@ grid.appendChild(d);
 });
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
-estado[2][2]=true; // centro marcado
+estado[2][2]=true;
 estados.push(estado);
 
 for(let i=0;i<5;i++){
