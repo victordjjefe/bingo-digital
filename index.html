@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bingo Digital</title>
+<title>Mi Tabla Bingo</title>
 
 <style>
 
@@ -13,57 +13,88 @@ background: radial-gradient(circle,#1a0033,#000);
 color:white;
 font-family:Arial;
 display:flex;
-justify-content:center;
-padding:5px;
-}
-
-.contenedor{
-width:100%;
-max-width:420px;
-background:rgba(0,0,0,0.7);
-padding:10px;
-border-radius:15px;
-box-shadow:0 0 15px #ffd700;
-}
-
-/* barra superior */
-
-.topBar{
-display:flex;
+flex-direction:column;
 align-items:center;
-justify-content:center;
-gap:10px;
-margin-bottom:5px;
+min-height:100vh;
+padding:10px;
 }
 
 .logo{
-max-height:60px;
+max-width:100%;
+max-height:140px;
+object-fit:contain;
+display:block;
+margin:auto;
 }
 
-.nombre{
-font-size:16px;
+.topBar{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:5px;
+}
+
+.botonModo{
+padding:6px 10px;
+font-size:14px;
+background:#ffd700;
+color:black;
+border:none;
+border-radius:8px;
+cursor:pointer;
 font-weight:bold;
-color:#00ffff;
 }
 
-/* tabla */
+.selectModo{
+padding:6px;
+border-radius:8px;
+display:none;
+}
+
+.botonLimpiar{
+padding:5px 10px;
+font-size:13px;
+background:#ff4444;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.contenedor{
+background:rgba(0,0,0,0.7);
+padding:15px;
+border-radius:15px;
+box-shadow:0 0 20px #ffd700;
+text-align:center;
+width:100%;
+max-width:400px;
+}
+
+.titulo{
+font-size:20px;
+color:#ffd700;
+margin:10px 0;
+font-weight:bold;
+}
 
 .tabla{
 display:grid;
-grid-template-columns:repeat(5,1fr);
-gap:5px;
+grid-template-columns: repeat(5,1fr);
+gap:6px;
 }
 
 .celda{
 background:#111;
 display:flex;
-align-items:center;
 justify-content:center;
+align-items:center;
 aspect-ratio:1/1;
-border-radius:8px;
-font-weight:bold;
 font-size:18px;
-border:2px solid #333;
+border-radius:10px;
+font-weight:bold;
+border:2px solid #444;
 }
 
 .letra{
@@ -77,6 +108,22 @@ color:black;
 box-shadow:0 0 10px #00ff00;
 }
 
+.patron{
+background:#00bfff !important;
+}
+
+#bingoAnim{
+position:fixed;
+top:40%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:50px;
+color:#00ff00;
+font-weight:bold;
+display:none;
+text-align:center;
+}
+
 </style>
 </head>
 
@@ -85,140 +132,324 @@ box-shadow:0 0 10px #00ff00;
 <div class="contenedor">
 
 <div class="topBar">
+
 <img id="logo" class="logo">
-<div id="nombre" class="nombre"></div>
+
+<button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
+
+<select id="modoSelect" class="selectModo" onchange="seleccionarModo()">
+<option value="">-- Elegir modo --</option>
+<option>Letra X</option>
+<option>Letra L</option>
+<option>Letra H</option>
+<option>Letra T</option>
+<option>Diagonal Izq</option>
+<option>Diagonal Der</option>
+<option>4 Esquinas</option>
+<option>Forma O</option>
+<option>Tabla Llena</option>
+<option>Personalizado</option>
+</select>
+
+<button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
+
 </div>
 
-<div id="tablasContainer"></div>
+<div id="editorPatron" style="display:none;margin-bottom:10px;">
+<div style="margin-bottom:5px;">Selecciona el patrón:</div>
+<div id="gridPatron" class="tabla"></div>
+<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
+</div>
+
+<div class="titulo">LA TERRAZA BINGO</div>
+
+<div id="tabla"></div>
 
 </div>
+
+<div id="bingoAnim">🎉 BINGO 🎉</div>
 
 <script>
 
-/* leer parametros */
+let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 
-const params = new URLSearchParams(window.location.search);
-
-const tablasParam = params.get("tablas");
-const vence = params.get("vence");
-const nombre = params.get("nombre");
-
-/* mostrar nombre */
-
-if(nombre){
-document.getElementById("nombre").textContent = nombre;
+function beep(){
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
+o.connect(g);
+g.connect(audioCtx.destination);
+o.frequency.value=800;
+o.start();
+g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
 }
 
-/* logo */
+function generarTablaPorID(id){
 
-document.getElementById("logo").src =
-"https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+let seed=12345;
 
-/* verificar vencimiento */
-
-if(vence){
-
-let hoy = new Date();
-let fechaVence = new Date(vence);
-
-if(hoy > fechaVence){
-
-document.body.innerHTML="<h2 style='color:white;text-align:center;margin-top:50px'>TABLA VENCIDA</h2>";
-throw new Error("Tabla vencida");
-
+function random(){
+seed=(seed*9301+49297)%233280;
+return seed/233280;
 }
 
-}
-
-/* generar tabla */
-
-function generarTabla(){
+function randomUnique(min,max,count){
 
 let nums=[];
 
-while(nums.length<24){
+while(nums.length<count){
 
-let n=Math.floor(Math.random()*75)+1;
+let n=Math.floor(random()*(max-min+1))+min;
 
 if(!nums.includes(n)) nums.push(n);
 
 }
 
-nums.splice(12,0,"★");
-
 return nums;
 
 }
 
-/* sonido */
+let tabla;
 
-let audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+for(let t=1;t<=id;t++){
 
-function beep(){
+let B=randomUnique(1,15,5);
+let I=randomUnique(16,30,5);
+let N=randomUnique(31,45,5);
+let G=randomUnique(46,60,5);
+let O=randomUnique(61,75,5);
 
-let o = audioCtx.createOscillator();
-let g = audioCtx.createGain();
+tabla=[];
 
-o.connect(g);
-g.connect(audioCtx.destination);
+for(let i=0;i<5;i++){
+tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+}
 
-o.frequency.value = 700;
-
-o.start();
-
-g.gain.exponentialRampToValueAtTime(
-0.00001,
-audioCtx.currentTime+0.15
-);
+tabla[2][2]="T"+String(t).padStart(3,'0');
 
 }
 
-/* crear tablas */
+return tabla;
 
-const contenedor = document.getElementById("tablasContainer");
+}
 
-const letras = ["B","I","N","G","O"];
+let modoActual="";
+let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
+let estados=[];
 
-let listaTablas = tablasParam.split(",");
+function mostrarModos(){
+let s=document.getElementById("modoSelect");
+s.style.display=s.style.display==="block"?"none":"block";
+}
 
-listaTablas.forEach(id=>{
+function seleccionarModo(){
 
-let titulo = document.createElement("div");
-titulo.style.textAlign="center";
-titulo.style.color="#ffd700";
-titulo.style.margin="6px";
-titulo.textContent="TABLA "+id;
+modoActual=document.getElementById("modoSelect").value;
 
-contenedor.appendChild(titulo);
+if(modoActual==="Personalizado"){
+document.getElementById("editorPatron").style.display="block";
+crearEditorPatron();
+}else{
+document.getElementById("editorPatron").style.display="none";
+}
 
-let grid = document.createElement("div");
-grid.className="tabla";
+}
 
-letras.forEach(l=>{
+function limpiarTabla(){
 
-let d=document.createElement("div");
-d.className="celda letra";
-d.textContent=l;
-
-grid.appendChild(d);
-
+document.querySelectorAll(".celda.marcado").forEach(c=>{
+c.classList.remove("marcado");
 });
 
-let numeros = generarTabla();
+estados.forEach(tabla=>{
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+tabla[i][j]=false;
+}
+}
+});
 
-numeros.forEach(n=>{
+modoActual="";
+document.getElementById("modoSelect").value="";
+document.getElementById("editorPatron").style.display="none";
+
+}
+
+function crearEditorPatron(){
+
+const grid=document.getElementById("gridPatron");
+
+grid.innerHTML="";
+
+for(let i=0;i<5;i++){
+
+for(let j=0;j<5;j++){
 
 let d=document.createElement("div");
 
 d.className="celda";
-d.textContent=n;
 
-if(n!=="★"){
+if(i===2 && j===2){
+
+d.textContent="★";
+d.style.background="#ffd700";
+
+}else{
+
+d.onclick=()=>{
+patronPersonalizado[i][j]=!patronPersonalizado[i][j];
+d.classList.toggle("patron");
+};
+
+}
+
+grid.appendChild(d);
+
+}
+
+}
+
+}
+
+function guardarPatron(){
+document.getElementById("editorPatron").style.display="none";
+alert("Patrón guardado");
+}
+
+function verificar(m){
+
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
+
+switch(modoActual){
+
+case "Letra X":
+return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
+c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
+
+case "Letra L":
+return [0,1,2,3,4].every(i=>c(i,0))&&
+[0,1,2,3,4].every(j=>c(4,j));
+
+case "Letra H":
+return [0,1,2,3,4].every(i=>c(i,0)&&c(i,4))&&
+[0,1,2,3,4].every(j=>c(2,j));
+
+case "Letra T":
+return [0,1,2,3,4].every(j=>c(0,j))&&
+[0,1,2,3,4].every(i=>c(i,2));
+
+case "Diagonal Izq":
+return [0,1,2,3,4].every(i=>c(i,i));
+
+case "Diagonal Der":
+return [0,1,2,3,4].every(i=>c(i,4-i));
+
+case "4 Esquinas":
+return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
+
+case "Forma O":
+return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j))&&
+[1,2,3].every(i=>c(i,0)&&c(i,4));
+
+case "Tabla Llena":
+return m.flat().every(v=>v);
+
+case "Personalizado":
+
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+if(patronPersonalizado[i][j]&&!m[i][j]&&!(i===2&&j===2)){
+return false;
+}
+}
+}
+
+return true;
+
+default:
+return false;
+
+}
+
+}
+
+function mostrarBingo(){
+
+let contenedor=document.querySelector(".contenedor");
+let anim=document.getElementById("bingoAnim");
+
+contenedor.style.display="none";
+anim.style.display="block";
+
+setTimeout(()=>{
+anim.style.display="none";
+contenedor.style.display="block";
+},5000);
+
+}
+
+const params=new URLSearchParams(window.location.search);
+
+const logoURL=params.get("logo");
+const logo=document.getElementById("logo");
+
+logo.src=logoURL
+? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
+: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+
+let lista=params.get("tablas");
+let ids=lista.split(",").map(n=>parseInt(n));
+
+const contenedor=document.getElementById("tabla");
+
+ids.forEach(id=>{
+
+let tabla=generarTablaPorID(id);
+
+let bloque=document.createElement("div");
+
+let titulo=document.createElement("div");
+titulo.textContent="TABLA T"+String(id).padStart(3,'0');
+titulo.style.color="#ffd700";
+titulo.style.marginBottom="5px";
+
+bloque.appendChild(titulo);
+
+let grid=document.createElement("div");
+grid.className="tabla";
+
+const letras=["B","I","N","G","O"];
+
+letras.forEach(l=>{
+let d=document.createElement("div");
+d.className="celda letra";
+d.textContent=l;
+grid.appendChild(d);
+});
+
+let estado=Array(5).fill().map(()=>Array(5).fill(false));
+estados.push(estado);
+
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+
+let valor=tabla[i][j];
+
+let d=document.createElement("div");
+d.className="celda";
+d.textContent=valor;
+
+if(typeof valor==="number"){
 
 d.onclick=()=>{
 
 beep();
+
 d.classList.toggle("marcado");
+estado[i][j]=d.classList.contains("marcado");
+
+if(verificar(estado)){
+mostrarBingo();
+}
 
 };
 
@@ -226,9 +457,11 @@ d.classList.toggle("marcado");
 
 grid.appendChild(d);
 
-});
+}
+}
 
-contenedor.appendChild(grid);
+bloque.appendChild(grid);
+contenedor.appendChild(bloque);
 
 });
 
