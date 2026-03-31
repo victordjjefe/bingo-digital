@@ -6,7 +6,6 @@
 <title>Mi Tabla Bingo</title>
 
 <style>
-
 body{
 margin:0;
 background: radial-gradient(circle,#1a0033,#000);
@@ -32,14 +31,13 @@ display:flex;
 flex-direction:column;
 align-items:center;
 gap:10px;
-margin-bottom:10px;
 width:100%;
 }
 
 .topRow{
 display:flex;
-align-items:center;
 justify-content:space-between;
+align-items:center;
 width:100%;
 gap:10px;
 flex-wrap:wrap;
@@ -47,13 +45,11 @@ flex-wrap:wrap;
 
 .botonModo{
 padding:6px 10px;
-font-size:14px;
 background:#ffd700;
-color:black;
 border:none;
 border-radius:8px;
-cursor:pointer;
 font-weight:bold;
+cursor:pointer;
 }
 
 .selectModo{
@@ -64,10 +60,10 @@ display:none;
 
 .botonLimpiar{
 padding:6px 12px;
-font-size:13px;
 background:#ff4444;
 color:white;
 border:none;
+border-radius:8px;
 border-radius:8px;
 cursor:pointer;
 font-weight:bold;
@@ -80,8 +76,12 @@ background:rgba(255,215,0,0.15);
 border:1px solid #ffd700;
 color:#ffd700;
 font-weight:bold;
-box-shadow:0 0 10px #ffd700,0 0 20px rgba(255,215,0,0.4);
-white-space:nowrap;
+box-shadow:0 0 10px #ffd700;
+}
+
+.fechaHora{
+font-size:13px;
+opacity:0.8;
 }
 
 .contenedor{
@@ -89,9 +89,9 @@ background:rgba(0,0,0,0.7);
 padding:15px;
 border-radius:15px;
 box-shadow:0 0 20px #ffd700;
-text-align:center;
 width:100%;
 max-width:400px;
+text-align:center;
 }
 
 .tabla{
@@ -106,7 +106,6 @@ display:flex;
 justify-content:center;
 align-items:center;
 aspect-ratio:1/1;
-font-size:18px;
 border-radius:10px;
 font-weight:bold;
 border:2px solid #444;
@@ -120,13 +119,11 @@ color:black;
 .marcado{
 background:#00ff00 !important;
 color:black;
-box-shadow:0 0 10px #00ff00;
 }
 
 .centro{
 background:#ffd700 !important;
 color:black;
-box-shadow:0 0 15px #ffd700,0 0 25px #ffd700;
 }
 
 #bingoAnim{
@@ -138,15 +135,6 @@ font-size:50px;
 color:#00ff00;
 font-weight:bold;
 display:none;
-}
-
-.bloqueTabla{
-margin-bottom:25px;
-padding:10px;
-border:2px solid #ffd700;
-border-radius:15px;
-box-shadow:0 0 15px rgba(255,215,0,0.4);
-background:rgba(255,255,255,0.03);
 }
 
 </style>
@@ -181,6 +169,8 @@ background:rgba(255,255,255,0.03);
 <div id="nombreJugador" class="nombreJugador"></div>
 </div>
 
+<div id="fechaHora" class="fechaHora"></div>
+
 </div>
 
 <div id="tabla"></div>
@@ -191,11 +181,31 @@ background:rgba(255,255,255,0.03);
 
 <script>
 
+let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+
+function beep(){
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
+o.connect(g);
+g.connect(audioCtx.destination);
+o.frequency.value=800;
+o.start();
+g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
+}
+
 let bingoDetectado=false;
 
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
 let modoActual="";
+
+function actualizarFechaHora(){
+let d=new Date();
+document.getElementById("fechaHora").textContent =
+d.toLocaleString();
+}
+setInterval(actualizarFechaHora,1000);
+actualizarFechaHora();
 
 function mostrarModos(){
 let s=document.getElementById("modoSelect");
@@ -220,10 +230,9 @@ tabla[i][j]=false;
 }
 });
 
+bingoDetectado=false;
 modoActual="";
 document.getElementById("modoSelect").value="";
-bingoDetectado=false;
-
 }
 
 function mostrarBingo(){
@@ -232,16 +241,16 @@ if(bingoDetectado) return;
 
 bingoDetectado=true;
 
-let contenedor=document.querySelector(".contenedor");
+let cont=document.querySelector(".contenedor");
 let anim=document.getElementById("bingoAnim");
 
-contenedor.style.display="none";
+cont.style.display="none";
 anim.style.display="block";
 
 setTimeout(()=>{
 anim.style.display="none";
-contenedor.style.display="block";
-},5000);
+cont.style.display="block";
+},3000);
 
 }
 
@@ -257,21 +266,19 @@ c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
 
 case "Personalizado":
 
-let cumple=true;
+let ok=true;
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
-if(patronPersonalizado[i][j] && !(i===2&&j===2)){
-if(!m[i][j]) cumple=false;
+if(patronPersonalizado[i][j] && !c(i,j)){
+ok=false;
 }
 }
 }
 
-if(cumple && !bingoDetectado){
-mostrarBingo();
-}
+if(ok) mostrarBingo();
 
-return cumple;
+return ok;
 
 default:
 return false;
