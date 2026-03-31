@@ -18,7 +18,13 @@ min-height:100vh;
 padding:10px;
 }
 
-.logo{max-height:120px;}
+.logo{
+max-width:100%;
+max-height:140px;
+object-fit:contain;
+display:block;
+margin:auto;
+}
 
 .logoNombre{
 display:flex;
@@ -26,12 +32,20 @@ align-items:center;
 justify-content:center;
 gap:12px;
 flex-wrap:wrap;
+margin-bottom:5px;
 }
 
 .nombreJugador{
 font-size:20px;
-font-weight:bold;
+font-weight:700;
 color:#ffd700;
+letter-spacing:1px;
+padding:6px 12px;
+border-radius:10px;
+background:linear-gradient(145deg,#111,#222);
+box-shadow:0 0 10px rgba(255,215,0,0.4);
+border:1px solid rgba(255,215,0,0.3);
+text-transform:uppercase;
 }
 
 .topBar{
@@ -42,38 +56,56 @@ gap:5px;
 margin-bottom:15px;
 }
 
-button{
+.botonModo{
 padding:6px 10px;
+font-size:14px;
+background:#ffd700;
+color:black;
 border:none;
 border-radius:8px;
 cursor:pointer;
 font-weight:bold;
 }
 
-.botonModo{background:#ffd700;}
-.botonLimpiar{background:#ff4444;color:white;}
-.selectModo{display:none;}
+.selectModo{
+padding:6px;
+border-radius:8px;
+display:none;
+}
+
+.botonLimpiar{
+padding:5px 10px;
+font-size:13px;
+background:#ff4444;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
 
 .contenedor{
 background:rgba(0,0,0,0.7);
 padding:15px;
 border-radius:15px;
 box-shadow:0 0 20px #ffd700;
-max-width:400px;
+text-align:center;
 width:100%;
+max-width:400px;
 }
 
 .bloqueTabla{
-background:#111;
+background:rgba(20,20,20,0.9);
 padding:10px;
 border-radius:15px;
 margin-bottom:15px;
-box-shadow:0 0 10px rgba(255,215,0,0.2);
+box-shadow:0 0 10px rgba(0,0,0,0.8), 0 0 10px rgba(255,215,0,0.2);
+border:1px solid rgba(255,255,255,0.05);
 }
 
 .tabla{
 display:grid;
-grid-template-columns:repeat(5,1fr);
+grid-template-columns: repeat(5,1fr);
 gap:6px;
 }
 
@@ -82,13 +114,17 @@ background:#111;
 display:flex;
 justify-content:center;
 align-items:center;
-aspect-ratio:1;
+aspect-ratio:1/1;
+font-size:18px;
 border-radius:10px;
-border:2px solid #444;
 font-weight:bold;
+border:2px solid #444;
 }
 
-.letra{background:#ffd700;color:black;}
+.letra{
+background:#ffd700;
+color:black;
+}
 
 .marcado{
 background:#00ff00 !important;
@@ -97,15 +133,15 @@ box-shadow:0 0 10px #00ff00;
 }
 
 .centro{
-animation:brillo 1.5s infinite alternate;
+animation: brilloCentro 1.5s infinite alternate;
 }
 
-@keyframes brillo{
-0%{box-shadow:0 0 10px #0f0;}
-100%{box-shadow:0 0 25px #0f0;}
+@keyframes brilloCentro{
+0%{ box-shadow:0 0 10px #00ff00; }
+100%{ box-shadow:0 0 25px #00ff00; }
 }
 
-/* 🔥 ANIMACION ORIGINAL FULL */
+/* 🔥 BINGO FULL SCREEN */
 #bingoAnim{
 position:fixed;
 top:0;
@@ -120,6 +156,23 @@ font-size:60px;
 color:#00ff00;
 z-index:9999;
 }
+
+#casiBingoAnim{
+position:fixed;
+top:30%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:28px;
+display:none;
+color:#ffd700;
+animation:parpadeo .7s infinite alternate;
+}
+
+@keyframes parpadeo{
+0%{opacity:1;}
+100%{opacity:0.4;}
+}
+
 </style>
 </head>
 
@@ -154,10 +207,10 @@ z-index:9999;
 
 </div>
 
-<div id="editorPatron" style="display:none">
+<div id="editorPatron" style="display:none;margin-bottom:10px;">
 <div>Selecciona el patrón:</div>
 <div id="gridPatron" class="tabla"></div>
-<button onclick="guardarPatron()">Guardar patrón</button>
+<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
 </div>
 
 <div id="tabla"></div>
@@ -165,22 +218,23 @@ z-index:9999;
 </div>
 
 <div id="bingoAnim">🎉 BINGO 🎉</div>
+<div id="casiBingoAnim">⚠️ FALTA 1 PARA BINGO</div>
 
 <script>
 
-/* 🔥 FECHA */
+/* FECHA */
 const params=new URLSearchParams(window.location.search);
 const vence=params.get("vence");
 if(vence){
 let hoy=new Date();
 let v=new Date(vence+"T23:59:59");
 if(hoy>v){
-document.body.innerHTML="<h1 style='color:red;text-align:center;margin-top:50px;'>⛔ VENCIDO</h1>";
+document.body.innerHTML="<h1 style='color:red;text-align:center;margin-top:50px;'>⛔ TABLA VENCIDA</h1>";
 throw new Error();
 }
 }
 
-/* 🔊 AUDIO */
+/* AUDIO */
 let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 
 function beep(){
@@ -257,39 +311,11 @@ function verificar(m){
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
 switch(modoActual){
-
 case "Letra X":
 return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]]
 .every(([i,j])=>c(i,j));
-
-case "Letra L":
-return [...Array(5).keys()].every(i=>c(i,0)) &&
-[...Array(5).keys()].every(j=>c(4,j));
-
-case "Letra H":
-return [...Array(5).keys()].every(i=>c(i,0)&&c(i,4)) &&
-[...Array(5).keys()].every(j=>c(2,j));
-
-case "Letra T":
-return [...Array(5).keys()].every(j=>c(0,j)) &&
-[...Array(5).keys()].every(i=>c(i,2));
-
-case "Diagonal Izq":
-return [...Array(5).keys()].every(i=>c(i,i));
-
-case "Diagonal Der":
-return [...Array(5).keys()].every(i=>c(i,4-i));
-
-case "4 Esquinas":
-return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
-
-case "Forma O":
-return [...Array(5).keys()].every(j=>c(0,j)&&c(4,j)) &&
-[1,2,3].every(i=>c(i,0)&&c(i,4));
-
 case "Tabla Llena":
 return m.flat().every(v=>v);
-
 case "Personalizado":
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
@@ -297,15 +323,13 @@ if(patronPersonalizado[i][j]&&!c(i,j)) return false;
 }
 }
 return true;
-
 default:
 return false;
 }
 }
 
-/* 🔥 CASI BINGO BIEN */
+/* CASI BINGO */
 function verificarCasiBingo(m){
-
 if(!modoActual) return false;
 
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
@@ -316,35 +340,9 @@ switch(modoActual){
 case "Letra X":
 coords=[[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]];
 break;
-case "Letra L":
-coords=[...Array(5).keys()].map(i=>[i,0]).concat([...Array(5).keys()].map(j=>[4,j]));
-break;
-case "Letra H":
-coords=[...Array(5).keys()].flatMap(i=>[[i,0],[i,4]]).concat([...Array(5).keys()].map(j=>[2,j]));
-break;
-case "Letra T":
-coords=[...Array(5).keys()].map(j=>[0,j]).concat([...Array(5).keys()].map(i=>[i,2]));
-break;
-case "Diagonal Izq":
-coords=[...Array(5).keys()].map(i=>[i,i]);
-break;
-case "Diagonal Der":
-coords=[...Array(5).keys()].map(i=>[i,4-i]);
-break;
-case "4 Esquinas":
-coords=[[0,0],[0,4],[4,0],[4,4]];
-break;
-case "Forma O":
-coords=[...Array(5).keys()].map(j=>[0,j]).concat([...Array(5).keys()].map(j=>[4,j]));
-break;
 case "Tabla Llena":
 return m.flat().filter(v=>v).length===24;
-case "Personalizado":
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-if(patronPersonalizado[i][j]&&!c(i,j)) return false;
-}
-}
+default:
 return false;
 }
 
@@ -352,36 +350,75 @@ let faltan=coords.filter(([i,j])=>!c(i,j)).length;
 return faltan===1;
 }
 
+function mostrarCasiBingo(){
+let a=document.getElementById("casiBingoAnim");
+a.style.display="block";
+setTimeout(()=>a.style.display="none",2000);
+}
+
 /* BINGO */
 function mostrarBingo(){
 let b=document.getElementById("bingoAnim");
+let contenedor=document.querySelector(".contenedor");
+
 b.style.display="flex";
+contenedor.style.display="none";
+
 aplausos();
-setTimeout(()=>b.style.display="none",4000);
+
+setTimeout(()=>{
+b.style.display="none";
+contenedor.style.display="block";
+},4000);
 }
 
-/* TABLA */
-function generarTabla(){
-let tabla=[];
+/* TABLA ORIGINAL */
+function generarTablaPorID(id){
+let seed=12345;
+function random(){
+seed=(seed*9301+49297)%233280;
+return seed/233280;
+}
+function randomUnique(min,max,count){
+let nums=[];
+while(nums.length<count){
+let n=Math.floor(random()*(max-min+1))+min;
+if(!nums.includes(n)) nums.push(n);
+}
+return nums;
+}
+let tabla;
+for(let t=1;t<=id;t++){
+let B=randomUnique(1,15,5);
+let I=randomUnique(16,30,5);
+let N=randomUnique(31,45,5);
+let G=randomUnique(46,60,5);
+let O=randomUnique(61,75,5);
+tabla=[];
 for(let i=0;i<5;i++){
-tabla[i]=[];
-for(let j=0;j<5;j++){
-tabla[i][j]=Math.floor(Math.random()*75)+1;
+tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
 }
+tabla[2][2]="T"+String(t).padStart(3,'0');
 }
-tabla[2][2]="FREE";
 return tabla;
 }
 
 /* PARAMS */
+const logoURL=params.get("logo");
+document.getElementById("logo").src=logoURL
+? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
+: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+
 document.getElementById("nombreJugador").textContent=params.get("nombres")||"";
 
-let ids=params.get("tablas").split(",");
+let ids=params.get("tablas").split(",").map(n=>parseInt(n));
 
 let contenedor=document.getElementById("tabla");
 
-ids.forEach(()=>{
-let tabla=generarTabla();
+/* CREAR TABLAS */
+ids.forEach(id=>{
+
+let tabla=generarTablaPorID(id);
 
 let bloque=document.createElement("div");
 bloque.className="bloqueTabla";
@@ -398,6 +435,7 @@ grid.appendChild(d);
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
 estado[2][2]=true;
+estados.push(estado);
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
@@ -410,9 +448,16 @@ if(i===2&&j===2){
 d.classList.add("marcado","centro");
 }else{
 d.onclick=()=>{
+
+document.getElementById("bingoAnim").style.display="none";
+document.querySelector(".contenedor").style.display="block";
+
 beep();
+
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
+
+if(verificarCasiBingo(estado)) mostrarCasiBingo();
 
 if(verificar(estado)) mostrarBingo();
 };
@@ -424,8 +469,10 @@ grid.appendChild(d);
 
 bloque.appendChild(grid);
 contenedor.appendChild(bloque);
+
 });
 
 </script>
+
 </body>
 </html>
