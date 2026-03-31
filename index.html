@@ -219,48 +219,35 @@ modoActual=document.getElementById("modoSelect").value;
 }
 
 function verificar(m){
-
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
 switch(modoActual){
-
 case "Letra X":
 return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
 c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
-
 case "Letra L":
 return [0,1,2,3,4].every(i=>c(i,0))&&
 [0,1,2,3,4].every(j=>c(4,j));
-
 case "Letra H":
 return [0,1,2,3,4].every(i=>c(i,0)&&c(i,4))&&
 [0,1,2,3,4].every(j=>c(2,j));
-
 case "Letra T":
 return [0,1,2,3,4].every(j=>c(0,j))&&
 [0,1,2,3,4].every(i=>c(i,2));
-
 case "Diagonal Izq":
 return [0,1,2,3,4].every(i=>c(i,i));
-
 case "Diagonal Der":
 return [0,1,2,3,4].every(i=>c(i,4-i));
-
 case "4 Esquinas":
 return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
-
 case "Forma O":
 return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j))&&
 [1,2,3].every(i=>c(i,0)&&c(i,4));
-
 case "Tabla Llena":
 return m.flat().every(v=>v);
-
 default:
 return false;
-
 }
-
 }
 
 function verificarCasiBingo(m){
@@ -331,6 +318,19 @@ return tabla;
 }
 
 const params=new URLSearchParams(window.location.search);
+
+/* LOGO */
+const logoURL=params.get("logo");
+const logo=document.getElementById("logo");
+
+logo.src=logoURL
+? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
+: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+
+/* NOMBRE */
+let nombresParam = params.get("nombres");
+let nombres = nombresParam ? nombresParam.split(",") : [];
+document.getElementById("nombreJugador").textContent = nombres[0] ? nombres[0] : "";
 
 let lista=params.get("tablas");
 let ids=lista.split(",").map(n=>parseInt(n));
