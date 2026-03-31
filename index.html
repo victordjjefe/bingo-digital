@@ -52,6 +52,18 @@ border-radius:8px;
 display:none;
 }
 
+.botonLimpiar{
+margin-top:6px;
+padding:5px 10px;
+font-size:13px;
+background:#ff4444;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
 .contenedor{
 background:rgba(0,0,0,0.7);
 padding:15px;
@@ -143,6 +155,8 @@ text-align:center;
 
 </div>
 
+<button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
+
 <div id="editorPatron" style="display:none;margin-bottom:10px;">
 <div style="margin-bottom:5px;">Selecciona el patrón:</div>
 <div id="gridPatron" class="tabla"></div>
@@ -158,8 +172,6 @@ text-align:center;
 <div id="bingoAnim">🎉 BINGO 🎉</div>
 
 <script>
-
-// TABLA POR ID
 
 function generarTablaPorID(id){
 
@@ -199,9 +211,7 @@ let O=randomUnique(61,75,5);
 tabla=[];
 
 for(let i=0;i<5;i++){
-
 tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
-
 }
 
 tabla[2][2]="T"+String(t).padStart(3,'0');
@@ -212,45 +222,30 @@ return tabla;
 
 }
 
-// VARIABLES
-
 let modoActual="";
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
-
-// MOSTRAR MODOS
+let estados=[];
 
 function mostrarModos(){
-
 document.getElementById("modoSelect").style.display="block";
-
 }
-
-// SELECCIONAR MODO
 
 function seleccionarModo(){
 
 modoActual=document.getElementById("modoSelect").value;
 
 if(modoActual==="Personalizado"){
-
 document.getElementById("editorPatron").style.display="block";
-
 crearEditorPatron();
-
 }else{
-
 document.getElementById("editorPatron").style.display="none";
-
 }
 
 }
-
-// EDITOR PATRON
 
 function crearEditorPatron(){
 
 const grid=document.getElementById("gridPatron");
-
 grid.innerHTML="";
 
 for(let i=0;i<5;i++){
@@ -258,23 +253,18 @@ for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
 
 let d=document.createElement("div");
-
 d.className="celda";
 
 if(i===2 && j===2){
 
 d.textContent="★";
-
 d.style.background="#ffd700";
 
 }else{
 
 d.onclick=()=>{
-
 patronPersonalizado[i][j]=!patronPersonalizado[i][j];
-
 d.classList.toggle("patron");
-
 };
 
 }
@@ -287,17 +277,10 @@ grid.appendChild(d);
 
 }
 
-// GUARDAR PATRON
-
 function guardarPatron(){
-
 document.getElementById("editorPatron").style.display="none";
-
 alert("Patrón guardado");
-
 }
-
-// VERIFICAR
 
 function verificar(m){
 
@@ -340,52 +323,54 @@ return m.flat().every(v=>v);
 case "Personalizado":
 
 for(let i=0;i<5;i++){
-
 for(let j=0;j<5;j++){
-
 if(patronPersonalizado[i][j]&&!m[i][j]&&!(i===2&&j===2)){
-
 return false;
-
 }
-
 }
-
 }
 
 return true;
 
 default:
-
 return false;
 
 }
 
 }
 
-// ANIMACION
-
 function mostrarBingo(){
 
 let contenedor=document.querySelector(".contenedor");
-
 let anim=document.getElementById("bingoAnim");
 
 contenedor.style.display="none";
-
 anim.style.display="block";
 
 setTimeout(()=>{
 
 anim.style.display="none";
-
 contenedor.style.display="block";
 
 },5000);
 
 }
 
-// PARAMS
+function limpiarTabla(){
+
+document.querySelectorAll(".celda.marcado").forEach(c=>{
+c.classList.remove("marcado");
+});
+
+estados.forEach(tabla=>{
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+tabla[i][j]=false;
+}
+}
+});
+
+}
 
 const params=new URLSearchParams(window.location.search);
 
@@ -394,19 +379,16 @@ const vence=params.get("vence");
 if(!vence){
 
 document.body.innerHTML="<h1 style='color:red;text-align:center;'>Link inválido</h1>";
-
 throw new Error();
 
 }
 
 const hoy=new Date();
-
 const fechaLimite=new Date(vence+"T23:59:59");
 
 if(hoy>fechaLimite){
 
 document.body.innerHTML="<h1 style='color:red;text-align:center;'>Tabla vencida</h1>";
-
 throw new Error();
 
 }
@@ -436,7 +418,6 @@ let titulo=document.createElement("div");
 titulo.textContent="TABLA T"+String(id).padStart(3,'0');
 
 titulo.style.color="#ffd700";
-
 titulo.style.marginBottom="5px";
 
 bloque.appendChild(titulo);
@@ -461,6 +442,8 @@ grid.appendChild(d);
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
 
+estados.push(estado);
+
 for(let i=0;i<5;i++){
 
 for(let j=0;j<5;j++){
@@ -482,9 +465,7 @@ d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
 
 if(verificar(estado)){
-
 mostrarBingo();
-
 }
 
 };
