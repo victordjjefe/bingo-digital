@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bingo</title>
+<title>Mi Tabla Bingo</title>
 
 <style>
+
 body{
 margin:0;
 background: radial-gradient(circle,#1a0033,#000);
@@ -14,79 +15,74 @@ font-family:Arial;
 display:flex;
 flex-direction:column;
 align-items:center;
+min-height:100vh;
 padding:10px;
 }
 
-/* LOGO */
 .logo{
+max-width:100%;
 max-height:140px;
+object-fit:contain;
 display:block;
 margin:auto;
 }
 
-.logoNombre{
+.topBar{
 display:flex;
+flex-direction:column;
 align-items:center;
-justify-content:center;
-gap:10px;
-margin-bottom:10px;
+gap:5px;
 }
 
-.nombreJugador{
-color:#ffd700;
+.botonModo{
+padding:6px 10px;
+font-size:14px;
+background:#ffd700;
+color:black;
+border:none;
+border-radius:8px;
+cursor:pointer;
 font-weight:bold;
-font-size:20px;
 }
 
-/* CONTENEDOR */
+.selectModo{
+padding:6px;
+border-radius:8px;
+display:none;
+}
+
+.botonLimpiar{
+padding:5px 10px;
+font-size:13px;
+background:#ff4444;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
 .contenedor{
 background:rgba(0,0,0,0.7);
 padding:15px;
 border-radius:15px;
 box-shadow:0 0 20px #ffd700;
-max-width:420px;
+text-align:center;
 width:100%;
+max-width:400px;
 }
 
-/* BOTONES */
-.topBar{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:6px;
-margin-bottom:15px;
-}
-
-.botonModo, .botonLimpiar{
-padding:6px 10px;
-border-radius:8px;
-border:none;
+.titulo{
+font-size:20px;
+color:#ffd700;
+margin:10px 0;
 font-weight:bold;
-cursor:pointer;
-}
-
-.botonModo{background:#ffd700;}
-.botonLimpiar{background:#ff4444;color:white;}
-
-.selectModo{
-display:none;
-padding:5px;
-border-radius:6px;
-}
-
-/* TABLA */
-.bloqueTabla{
-background:#111;
-padding:10px;
-border-radius:12px;
-margin-bottom:15px;
-box-shadow:0 0 10px #000;
 }
 
 .tabla{
 display:grid;
-grid-template-columns:repeat(5,1fr);
-gap:5px;
+grid-template-columns: repeat(5,1fr);
+gap:6px;
 }
 
 .celda{
@@ -94,49 +90,40 @@ background:#111;
 display:flex;
 justify-content:center;
 align-items:center;
-aspect-ratio:1;
-border-radius:8px;
-border:2px solid #444;
+aspect-ratio:1/1;
+font-size:18px;
+border-radius:10px;
 font-weight:bold;
+border:2px solid #444;
 }
 
-.letra{background:#ffd700;color:black;}
+.letra{
+background:#ffd700;
+color:black;
+}
 
 .marcado{
 background:#00ff00 !important;
 color:black;
+box-shadow:0 0 10px #00ff00;
 }
 
-.centro{
-box-shadow:0 0 15px #00ff00;
+.patron{
+background:#00bfff !important;
 }
 
-/* BINGO */
 #bingoAnim{
 position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:black;
-display:none;
-justify-content:center;
-align-items:center;
-font-size:60px;
-color:#00ff00;
-z-index:9999;
-}
-
-/* CASI */
-#casiBingoAnim{
-position:fixed;
-top:30%;
+top:40%;
 left:50%;
 transform:translate(-50%,-50%);
-font-size:26px;
+font-size:50px;
+color:#00ff00;
+font-weight:bold;
 display:none;
-color:#ffd700;
+text-align:center;
 }
+
 </style>
 </head>
 
@@ -146,10 +133,7 @@ color:#ffd700;
 
 <div class="topBar">
 
-<div class="logoNombre">
 <img id="logo" class="logo">
-<div id="nombreJugador" class="nombreJugador"></div>
-</div>
 
 <button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
 
@@ -171,220 +155,317 @@ color:#ffd700;
 
 </div>
 
-<div id="editorPatron" style="display:none">
-<div>Selecciona patrón</div>
+<div id="editorPatron" style="display:none;margin-bottom:10px;">
+<div style="margin-bottom:5px;">Selecciona el patrón:</div>
 <div id="gridPatron" class="tabla"></div>
-<button onclick="guardarPatron()">Guardar</button>
+<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
 </div>
+
+<div class="titulo">LA TERRAZA BINGO</div>
 
 <div id="tabla"></div>
 
 </div>
 
 <div id="bingoAnim">🎉 BINGO 🎉</div>
-<div id="casiBingoAnim">⚠️ FALTA 1 PARA BINGO</div>
 
 <script>
 
-/* PARAMS + VENCIMIENTO */
-const params=new URLSearchParams(location.search);
-
-const vence=params.get("vence");
-if(vence){
-let hoy=new Date();
-let v=new Date(vence+"T23:59:59");
-if(hoy>v){
-document.body.innerHTML="<h1 style='color:red;text-align:center'>⛔ VENCIDA</h1>";
-throw new Error();
-}
-}
-
-/* LOGO */
-const logoURL=params.get("logo");
-document.getElementById("logo").src=logoURL
-? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
-: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
-
-document.getElementById("nombreJugador").textContent=params.get("nombres")||"";
-
-/* AUDIO */
 let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+
 function beep(){
 let o=audioCtx.createOscillator();
 let g=audioCtx.createGain();
-o.connect(g);g.connect(audioCtx.destination);
+o.connect(g);
+g.connect(audioCtx.destination);
+o.frequency.value=800;
 o.start();
-g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.2);
-}
-function aplausos(){
-let o=audioCtx.createOscillator();
-o.frequency.value=200;
-o.connect(audioCtx.destination);
-o.start();
-o.stop(audioCtx.currentTime+1);
+g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
 }
 
-/* VARIABLES */
+function generarTablaPorID(id){
+
+let seed=12345;
+
+function random(){
+seed=(seed*9301+49297)%233280;
+return seed/233280;
+}
+
+function randomUnique(min,max,count){
+
+let nums=[];
+
+while(nums.length<count){
+
+let n=Math.floor(random()*(max-min+1))+min;
+
+if(!nums.includes(n)) nums.push(n);
+
+}
+
+return nums;
+
+}
+
+let tabla;
+
+for(let t=1;t<=id;t++){
+
+let B=randomUnique(1,15,5);
+let I=randomUnique(16,30,5);
+let N=randomUnique(31,45,5);
+let G=randomUnique(46,60,5);
+let O=randomUnique(61,75,5);
+
+tabla=[];
+
+for(let i=0;i<5;i++){
+tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+}
+
+tabla[2][2]="T"+String(t).padStart(3,'0');
+
+}
+
+return tabla;
+
+}
+
 let modoActual="";
-let estados=[];
-let bingoActivo=false;
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
+let estados=[];
 
-/* UI */
 function mostrarModos(){
 let s=document.getElementById("modoSelect");
 s.style.display=s.style.display==="block"?"none":"block";
 }
 
 function seleccionarModo(){
+
 modoActual=document.getElementById("modoSelect").value;
+
 if(modoActual==="Personalizado"){
 document.getElementById("editorPatron").style.display="block";
 crearEditorPatron();
 }else{
 document.getElementById("editorPatron").style.display="none";
 }
+
 }
 
-/* PATRON */
-function crearEditorPatron(){
-let g=document.getElementById("gridPatron");
-g.innerHTML="";
+function limpiarTabla(){
+
+document.querySelectorAll(".celda.marcado").forEach(c=>{
+c.classList.remove("marcado");
+});
+
+estados.forEach(tabla=>{
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
+tabla[i][j]=false;
+}
+}
+});
+
+modoActual="";
+document.getElementById("modoSelect").value="";
+document.getElementById("editorPatron").style.display="none";
+
+}
+
+function crearEditorPatron(){
+
+const grid=document.getElementById("gridPatron");
+
+grid.innerHTML="";
+
+for(let i=0;i<5;i++){
+
+for(let j=0;j<5;j++){
+
 let d=document.createElement("div");
+
 d.className="celda";
-if(i!==2||j!==2){
+
+if(i===2 && j===2){
+
+d.textContent="★";
+d.style.background="#ffd700";
+
+}else{
+
 d.onclick=()=>{
 patronPersonalizado[i][j]=!patronPersonalizado[i][j];
-d.classList.toggle("marcado");
+d.classList.toggle("patron");
 };
+
 }
-g.appendChild(d);
+
+grid.appendChild(d);
+
 }
+
 }
+
 }
+
 function guardarPatron(){
 document.getElementById("editorPatron").style.display="none";
+alert("Patrón guardado");
 }
 
-/* LIMPIAR */
-function limpiarTabla(){
-document.querySelectorAll(".celda.marcado").forEach(c=>{
-if(!c.classList.contains("centro")) c.classList.remove("marcado");
-});
-estados.forEach(t=>{
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++) t[i][j]=false;
-}
-t[2][2]=true;
-});
-bingoActivo=false;
-}
-
-/* VERIFICAR */
 function verificar(m){
-if(!modoActual) return false;
+
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
 switch(modoActual){
+
 case "Letra X":
-return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]].every(([i,j])=>c(i,j));
+return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
+c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
+
+case "Letra L":
+return [0,1,2,3,4].every(i=>c(i,0))&&
+[0,1,2,3,4].every(j=>c(4,j));
+
+case "Letra H":
+return [0,1,2,3,4].every(i=>c(i,0)&&c(i,4))&&
+[0,1,2,3,4].every(j=>c(2,j));
+
+case "Letra T":
+return [0,1,2,3,4].every(j=>c(0,j))&&
+[0,1,2,3,4].every(i=>c(i,2));
+
+case "Diagonal Izq":
+return [0,1,2,3,4].every(i=>c(i,i));
+
+case "Diagonal Der":
+return [0,1,2,3,4].every(i=>c(i,4-i));
+
 case "4 Esquinas":
 return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
-case "Diagonal Izq":
-return [...Array(5).keys()].every(i=>c(i,i));
-case "Diagonal Der":
-return [...Array(5).keys()].every(i=>c(i,4-i));
+
+case "Forma O":
+return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j))&&
+[1,2,3].every(i=>c(i,0)&&c(i,4));
+
 case "Tabla Llena":
 return m.flat().every(v=>v);
+
 case "Personalizado":
+
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
-if(patronPersonalizado[i][j]&&!c(i,j)) return false;
-}
-}
-return true;
-default:
+if(patronPersonalizado[i][j]&&!m[i][j]&&!(i===2&&j===2)){
 return false;
 }
 }
-
-/* CASI */
-function verificarCasi(m){
-if(!modoActual) return false;
-const c=(i,j)=>m[i][j]||(i===2&&j===2);
-
-let coords=[[0,0],[1,1],[2,2],[3,3],[4,4]];
-let faltan=coords.filter(([i,j])=>!c(i,j)).length;
-return faltan===1;
 }
 
-/* BINGO */
+return true;
+
+default:
+return false;
+
+}
+
+}
+
 function mostrarBingo(){
-if(bingoActivo) return;
-bingoActivo=true;
 
-let b=document.getElementById("bingoAnim");
-b.style.display="flex";
-aplausos();
+let contenedor=document.querySelector(".contenedor");
+let anim=document.getElementById("bingoAnim");
 
-setTimeout(()=>b.style.display="none",4000);
+contenedor.style.display="none";
+anim.style.display="block";
+
+setTimeout(()=>{
+anim.style.display="none";
+contenedor.style.display="block";
+},5000);
+
 }
 
-/* TABLAS */
-let ids=params.get("tablas").split(",");
-let cont=document.getElementById("tabla");
+const params=new URLSearchParams(window.location.search);
+
+const logoURL=params.get("logo");
+const logo=document.getElementById("logo");
+
+logo.src=logoURL
+? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
+: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+
+let lista=params.get("tablas");
+let ids=lista.split(",").map(n=>parseInt(n));
+
+const contenedor=document.getElementById("tabla");
 
 ids.forEach(id=>{
+
+let tabla=generarTablaPorID(id);
+
 let bloque=document.createElement("div");
-bloque.className="bloqueTabla";
+
+let titulo=document.createElement("div");
+titulo.textContent="TABLA T"+String(id).padStart(3,'0');
+titulo.style.color="#ffd700";
+titulo.style.marginBottom="5px";
+
+bloque.appendChild(titulo);
 
 let grid=document.createElement("div");
 grid.className="tabla";
 
+const letras=["B","I","N","G","O"];
+
+letras.forEach(l=>{
+let d=document.createElement("div");
+d.className="celda letra";
+d.textContent=l;
+grid.appendChild(d);
+});
+
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
-estado[2][2]=true;
 estados.push(estado);
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
 
+let valor=tabla[i][j];
+
 let d=document.createElement("div");
 d.className="celda";
+d.textContent=valor;
 
-if(i===2&&j===2){
-d.textContent="T"+id.padStart(3,"0");
-d.classList.add("marcado","centro");
-}else{
-d.textContent=Math.floor(Math.random()*75)+1;
+if(typeof valor==="number"){
 
 d.onclick=()=>{
+
 beep();
 
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
 
-if(!verificar(estado)) bingoActivo=false;
-
-if(verificarCasi(estado)){
-let a=document.getElementById("casiBingoAnim");
-a.style.display="block";
-setTimeout(()=>a.style.display="none",1500);
+if(verificar(estado)){
+mostrarBingo();
 }
 
-if(verificar(estado)) mostrarBingo();
 };
+
 }
 
 grid.appendChild(d);
+
 }
 }
 
 bloque.appendChild(grid);
-cont.appendChild(bloque);
+contenedor.appendChild(bloque);
+
 });
 
 </script>
+
 </body>
-</html>
+</html> hagamos una mejora
