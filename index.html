@@ -33,6 +33,16 @@ flex-direction:column;
 align-items:center;
 gap:10px;
 margin-bottom:10px;
+width:100%;
+}
+
+.topRow{
+display:flex;
+align-items:center;
+justify-content:space-between;
+width:100%;
+gap:10px;
+flex-wrap:wrap;
 }
 
 .botonModo{
@@ -61,11 +71,9 @@ border:none;
 border-radius:8px;
 cursor:pointer;
 font-weight:bold;
-margin-top:5px;
 }
 
 .nombreJugador{
-margin-top:5px;
 padding:6px 12px;
 border-radius:10px;
 background:rgba(255,215,0,0.15);
@@ -73,6 +81,8 @@ border:1px solid #ffd700;
 color:#ffd700;
 font-weight:bold;
 text-align:center;
+box-shadow:0 0 10px #ffd700, 0 0 20px rgba(255,215,0,0.5);
+white-space:nowrap;
 }
 
 .contenedor{
@@ -189,9 +199,10 @@ z-index:9999;
 <option>Personalizado</option>
 </select>
 
-<div id="nombreJugador" class="nombreJugador"></div>
-
+<div class="topRow">
 <button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
+<div id="nombreJugador" class="nombreJugador"></div>
+</div>
 
 </div>
 
@@ -263,7 +274,6 @@ return tabla;
 }
 
 let modoActual="";
-let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
 
 function mostrarModos(){
@@ -291,20 +301,12 @@ tabla[i][j]=false;
 
 modoActual="";
 document.getElementById("modoSelect").value="";
-
 bingoActivo=false;
 
 }
 
 function verificar(m){
-
-const c=(i,j)=>m[i][j]||(i===2&&j===2);
-
-switch(modoActual){
-default:
 return false;
-}
-
 }
 
 function mostrarBingo(){
@@ -331,22 +333,18 @@ const params=new URLSearchParams(window.location.search);
 const vence=params.get("vence");
 const nombre=params.get("nombre");
 
-function inicioDia(d){
-return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+function hoyStr(){
+let d=new Date();
+return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
 }
 
-if(vence){
-let fechaVence=new Date(vence);
-let hoy=inicioDia(new Date());
-
-if(inicioDia(fechaVence) < hoy){
+if(vence && vence < hoyStr()){
 document.getElementById("expiradoMsg").style.display="flex";
 document.querySelector(".contenedor").style.display="none";
 }
-}
 
 if(nombre){
-document.getElementById("nombreJugador").textContent="Jugador: "+nombre;
+document.getElementById("nombreJugador").textContent=nombre;
 }
 
 const logoURL=params.get("logo");
