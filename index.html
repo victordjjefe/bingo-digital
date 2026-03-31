@@ -13,20 +13,17 @@ background: radial-gradient(circle,#1a0033,#000);
 color:white;
 font-family:Arial;
 display:flex;
-flex-direction:column;
-align-items:center;
-min-height:100vh;
+justify-content:center;
 padding:5px;
 }
 
 .contenedor{
+width:100%;
+max-width:420px;
 background:rgba(0,0,0,0.7);
 padding:10px;
 border-radius:15px;
-box-shadow:0 0 20px #ffd700;
-text-align:center;
-width:100%;
-max-width:420px;
+box-shadow:0 0 15px #ffd700;
 }
 
 /* barra superior */
@@ -36,70 +33,37 @@ display:flex;
 align-items:center;
 justify-content:center;
 gap:10px;
-flex-wrap:wrap;
 margin-bottom:5px;
 }
 
 .logo{
 max-height:60px;
-object-fit:contain;
 }
 
-.nombreJugador{
+.nombre{
 font-size:16px;
+font-weight:bold;
 color:#00ffff;
-font-weight:bold;
-}
-
-/* botones */
-
-.botonModo{
-padding:6px 10px;
-font-size:13px;
-background:#ffd700;
-color:black;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.botonLimpiar{
-padding:5px 10px;
-font-size:12px;
-background:#ff4444;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.selectModo{
-padding:5px;
-border-radius:8px;
-display:none;
-margin-top:4px;
 }
 
 /* tabla */
 
 .tabla{
 display:grid;
-grid-template-columns: repeat(5,1fr);
+grid-template-columns:repeat(5,1fr);
 gap:5px;
 }
 
 .celda{
 background:#111;
 display:flex;
-justify-content:center;
 align-items:center;
+justify-content:center;
 aspect-ratio:1/1;
-font-size:18px;
-border-radius:10px;
+border-radius:8px;
 font-weight:bold;
-border:2px solid #444;
+font-size:18px;
+border:2px solid #333;
 }
 
 .letra{
@@ -113,17 +77,6 @@ color:black;
 box-shadow:0 0 10px #00ff00;
 }
 
-#bingoAnim{
-position:fixed;
-top:40%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:50px;
-color:#00ff00;
-font-weight:bold;
-display:none;
-}
-
 </style>
 </head>
 
@@ -132,85 +85,50 @@ display:none;
 <div class="contenedor">
 
 <div class="topBar">
-
 <img id="logo" class="logo">
-
-<div id="nombreJugador" class="nombreJugador"></div>
-
+<div id="nombre" class="nombre"></div>
 </div>
 
-<button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
-
-<select id="modoSelect" class="selectModo" onchange="seleccionarModo()">
-
-<option value="">Elegir modo</option>
-<option>Diagonal Izq</option>
-<option>Diagonal Der</option>
-<option>Letra X</option>
-<option>Letra L</option>
-<option>Letra H</option>
-<option>Letra T</option>
-<option>4 Esquinas</option>
-<option>Tabla Llena</option>
-
-</select>
-
-<br><br>
-
-<button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
-
-<br><br>
-
-<div id="tabla"></div>
+<div id="tablasContainer"></div>
 
 </div>
-
-<div id="bingoAnim">BINGO</div>
 
 <script>
 
-/* sonido */
-
-let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-
-function beep(){
-
-let o=audioCtx.createOscillator();
-let g=audioCtx.createGain();
-
-o.connect(g);
-g.connect(audioCtx.destination);
-
-o.frequency.value=800;
-o.start();
-
-g.gain.exponentialRampToValueAtTime(
-0.00001,
-audioCtx.currentTime+0.15
-);
-
-}
-
 /* leer parametros */
 
-const params=new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
 
-const logoURL=params.get("logo");
-const nombre=params.get("nombre");
-const tablas=params.get("tablas");
+const tablasParam = params.get("tablas");
+const vence = params.get("vence");
+const nombre = params.get("nombre");
 
 /* mostrar nombre */
 
 if(nombre){
-
-document.getElementById("nombreJugador").textContent=nombre;
-
+document.getElementById("nombre").textContent = nombre;
 }
 
 /* logo */
 
-document.getElementById("logo").src=
-"https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png";
+document.getElementById("logo").src =
+"https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+
+/* verificar vencimiento */
+
+if(vence){
+
+let hoy = new Date();
+let fechaVence = new Date(vence);
+
+if(hoy > fechaVence){
+
+document.body.innerHTML="<h2 style='color:white;text-align:center;margin-top:50px'>TABLA VENCIDA</h2>";
+throw new Error("Tabla vencida");
+
+}
+
+}
 
 /* generar tabla */
 
@@ -232,94 +150,87 @@ return nums;
 
 }
 
-/* crear tabla */
+/* sonido */
 
-const contenedor=document.getElementById("tabla");
+let audioCtx = new (window.AudioContext||window.webkitAudioContext)();
 
-let numeros=generarTabla();
+function beep(){
 
-const letras=["B","I","N","G","O"];
+let o = audioCtx.createOscillator();
+let g = audioCtx.createGain();
+
+o.connect(g);
+g.connect(audioCtx.destination);
+
+o.frequency.value = 700;
+
+o.start();
+
+g.gain.exponentialRampToValueAtTime(
+0.00001,
+audioCtx.currentTime+0.15
+);
+
+}
+
+/* crear tablas */
+
+const contenedor = document.getElementById("tablasContainer");
+
+const letras = ["B","I","N","G","O"];
+
+let listaTablas = tablasParam.split(",");
+
+listaTablas.forEach(id=>{
+
+let titulo = document.createElement("div");
+titulo.style.textAlign="center";
+titulo.style.color="#ffd700";
+titulo.style.margin="6px";
+titulo.textContent="TABLA "+id;
+
+contenedor.appendChild(titulo);
+
+let grid = document.createElement("div");
+grid.className="tabla";
 
 letras.forEach(l=>{
 
 let d=document.createElement("div");
-
 d.className="celda letra";
 d.textContent=l;
 
-contenedor.appendChild(d);
+grid.appendChild(d);
 
 });
 
-let estado=[];
+let numeros = generarTabla();
 
-numeros.forEach((n,i)=>{
+numeros.forEach(n=>{
 
 let d=document.createElement("div");
 
 d.className="celda";
 d.textContent=n;
 
-estado[i]=false;
+if(n!=="★"){
 
 d.onclick=()=>{
 
-if(n==="★") return;
-
 beep();
-
 d.classList.toggle("marcado");
-
-estado[i]=d.classList.contains("marcado");
 
 };
 
-contenedor.appendChild(d);
+}
+
+grid.appendChild(d);
 
 });
 
-/* modos */
+contenedor.appendChild(grid);
 
-function mostrarModos(){
-
-let s=document.getElementById("modoSelect");
-
-s.style.display=s.style.display==="block"?"none":"block";
-
-}
-
-function seleccionarModo(){
-
-modoActual=document.getElementById("modoSelect").value;
-
-}
-
-/* limpiar */
-
-function limpiarTabla(){
-
-document.querySelectorAll(".celda.marcado").forEach(c=>{
-c.classList.remove("marcado");
 });
-
-document.getElementById("modoSelect").value="";
-modoActual="";
-
-}
-
-/* bingo */
-
-function mostrarBingo(){
-
-let anim=document.getElementById("bingoAnim");
-
-anim.style.display="block";
-
-setTimeout(()=>{
-anim.style.display="none";
-},5000);
-
-}
 
 </script>
 
