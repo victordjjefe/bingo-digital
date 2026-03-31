@@ -23,8 +23,20 @@ padding:10px;
 max-width:100%;
 max-height:140px;
 object-fit:contain;
-display:block;
-margin:auto;
+}
+
+.logoNombre{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.nombreJugador{
+font-size:18px;
+font-weight:bold;
+color:#fff;
 }
 
 .topBar{
@@ -133,7 +145,10 @@ text-align:center;
 
 <div class="topBar">
 
+<div class="logoNombre">
 <img id="logo" class="logo">
+<div id="nombreJugador" class="nombreJugador"></div>
+</div>
 
 <button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
 
@@ -395,6 +410,11 @@ const logo=document.getElementById("logo");
 logo.src=logoURL
 ? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
 : "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+
+/* NUEVO: NOMBRE */
+let nombresParam = params.get("nombres");
+let nombres = nombresParam ? nombresParam.split(",") : [];
+document.getElementById("nombreJugador").textContent = nombres[0] ? nombres[0] : "";
 
 let lista=params.get("tablas");
 let ids=lista.split(",").map(n=>parseInt(n));
