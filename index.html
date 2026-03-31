@@ -149,29 +149,10 @@ box-shadow:0 0 15px rgba(255,215,0,0.4);
 background:rgba(255,255,255,0.03);
 }
 
-.expirado{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:black;
-color:red;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:24px;
-z-index:9999;
-}
-
 </style>
 </head>
 
 <body>
-
-<div id="expiradoMsg" class="expirado" style="display:none;">
-⛔ Esta tabla ha expirado ⛔
-</div>
 
 <div class="contenedor">
 
@@ -202,12 +183,6 @@ z-index:9999;
 
 </div>
 
-<div id="editorPatron" style="display:none;margin-bottom:10px;">
-<div style="margin-bottom:5px;">Selecciona el patrón:</div>
-<div id="gridPatron" class="tabla"></div>
-<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
-</div>
-
 <div id="tabla"></div>
 
 </div>
@@ -216,61 +191,11 @@ z-index:9999;
 
 <script>
 
-let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+let bingoDetectado=false;
 
-function beep(){
-let o=audioCtx.createOscillator();
-let g=audioCtx.createGain();
-o.connect(g);
-g.connect(audioCtx.destination);
-o.frequency.value=800;
-o.start();
-g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
-}
-
-function generarTablaPorID(id){
-
-let seed=12345;
-
-function random(){
-seed=(seed*9301+49297)%233280;
-return seed/233280;
-}
-
-function randomUnique(min,max,count){
-let nums=[];
-while(nums.length<count){
-let n=Math.floor(random()*(max-min+1))+min;
-if(!nums.includes(n)) nums.push(n);
-}
-return nums;
-}
-
-let tabla;
-
-for(let t=1;t<=id;t++){
-
-let B=randomUnique(1,15,5);
-let I=randomUnique(16,30,5);
-let N=randomUnique(31,45,5);
-let G=randomUnique(46,60,5);
-let O=randomUnique(61,75,5);
-
-tabla=[];
-for(let i=0;i<5;i++){
-tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
-}
-tabla[2][2]="T"+String(t).padStart(3,'0');
-
-}
-
-return tabla;
-}
-
-let modoActual="";
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
-let bingoActivo=false;
+let modoActual="";
 
 function mostrarModos(){
 let s=document.getElementById("modoSelect");
@@ -278,16 +203,7 @@ s.style.display=s.style.display==="block"?"none":"block";
 }
 
 function seleccionarModo(){
-
 modoActual=document.getElementById("modoSelect").value;
-
-if(modoActual==="Personalizado"){
-document.getElementById("editorPatron").style.display="block";
-crearEditorPatron();
-}else{
-document.getElementById("editorPatron").style.display="none";
-}
-
 }
 
 function limpiarTabla(){
@@ -306,97 +222,7 @@ tabla[i][j]=false;
 
 modoActual="";
 document.getElementById("modoSelect").value="";
-document.getElementById("editorPatron").style.display="none";
 bingoDetectado=false;
-
-}
-
-function crearEditorPatron(){
-
-const grid=document.getElementById("gridPatron");
-grid.innerHTML="";
-
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-
-let d=document.createElement("div");
-d.className="celda";
-
-if(i===2 && j===2){
-d.textContent="★";
-d.style.background="#ffd700";
-}else{
-
-d.onclick=()=>{
-patronPersonalizado[i][j]=!patronPersonalizado[i][j];
-d.classList.toggle("marcado");
-};
-
-}
-
-grid.appendChild(d);
-
-}
-}
-}
-
-function guardarPatron(){
-document.getElementById("editorPatron").style.display="none";
-alert("Patrón guardado");
-}
-
-function verificar(m){
-
-const c=(i,j)=>m[i][j]||(i===2&&j===2);
-
-switch(modoActual){
-
-case "Letra X":
-return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
-c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
-
-case "Letra L":
-return [0,1,2,3,4].every(i=>c(i,0))&&
-[0,1,2,3,4].every(j=>c(4,j));
-
-case "Letra H":
-return [0,1,2,3,4].every(i=>c(i,0)&&c(i,4))&&
-[0,1,2,3,4].every(j=>c(2,j));
-
-case "Letra T":
-return [0,1,2,3,4].every(j=>c(0,j))&&
-[0,1,2,3,4].every(i=>c(i,2));
-
-case "Diagonal Izq":
-return [0,1,2,3,4].every(i=>c(i,i));
-
-case "Diagonal Der":
-return [0,1,2,3,4].every(i=>c(i,4-i));
-
-case "4 Esquinas":
-return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
-
-case "Forma O":
-return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j))&&
-[1,2,3].every(i=>c(i,0)&&c(i,4));
-
-case "Tabla Llena":
-return m.flat().every(v=>v);
-
-case "Personalizado":
-
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-if(patronPersonalizado[i][j]&&!m[i][j]&&!(i===2&&j===2)){
-return false;
-}
-}
-}
-return true;
-
-default:
-return false;
-}
 
 }
 
@@ -419,99 +245,40 @@ contenedor.style.display="block";
 
 }
 
-const params=new URLSearchParams(window.location.search);
+function verificar(m){
 
-const vence=params.get("vence");
-const nombre=params.get("nombre");
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
-function hoyStr(){
-let d=new Date();
-return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
-}
+switch(modoActual){
 
-if(vence && vence < hoyStr()){
-document.getElementById("expiradoMsg").style.display="flex";
-document.querySelector(".contenedor").style.display="none";
-}
+case "Letra X":
+return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
+c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
 
-if(nombre){
-document.getElementById("nombreJugador").textContent=nombre;
-}
+case "Personalizado":
 
-const logoURL=params.get("logo");
-const logo=document.getElementById("logo");
-
-logo.src=logoURL
-? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
-: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
-
-let lista=params.get("tablas");
-let ids=lista.split(",").map(n=>parseInt(n));
-
-const contenedor=document.getElementById("tabla");
-
-ids.forEach(id=>{
-
-let tabla=generarTablaPorID(id);
-
-let bloque=document.createElement("div");
-bloque.className="bloqueTabla";
-
-let grid=document.createElement("div");
-grid.className="tabla";
-
-const letras=["B","I","N","G","O"];
-
-letras.forEach(l=>{
-let d=document.createElement("div");
-d.className="celda letra";
-d.textContent=l;
-grid.appendChild(d);
-});
-
-let estado=Array(5).fill().map(()=>Array(5).fill(false));
-estados.push(estado);
+let cumple=true;
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
+if(patronPersonalizado[i][j] && !(i===2&&j===2)){
+if(!m[i][j]) cumple=false;
+}
+}
+}
 
-let valor=tabla[i][j];
-
-let d=document.createElement("div");
-d.className="celda";
-d.textContent=valor;
-
-if(i===2 && j===2){
-d.classList.add("centro");
-estado[i][j]=true;
-}else if(typeof valor==="number"){
-
-d.onclick=()=>{
-
-if(bingoActivo) return;
-
-beep();
-
-d.classList.toggle("marcado");
-estado[i][j]=d.classList.contains("marcado");
-
-if(verificar(estado)){
+if(cumple && !bingoDetectado){
 mostrarBingo();
 }
 
-};
+return cumple;
+
+default:
+return false;
 
 }
 
-grid.appendChild(d);
-
 }
-}
-
-bloque.appendChild(grid);
-contenedor.appendChild(bloque);
-
-});
 
 </script>
 
