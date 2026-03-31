@@ -29,10 +29,9 @@ margin:auto;
 
 .topBar{
 display:flex;
-justify-content:center;
+flex-direction:column;
 align-items:center;
-gap:10px;
-flex-wrap:wrap;
+gap:5px;
 }
 
 .botonModo{
@@ -46,8 +45,14 @@ cursor:pointer;
 font-weight:bold;
 }
 
+.selectModo{
+padding:6px;
+border-radius:8px;
+display:none;
+margin-top:5px;
+}
+
 .botonLimpiar{
-margin-top:6px;
 padding:5px 10px;
 font-size:13px;
 background:#ff4444;
@@ -55,25 +60,6 @@ color:white;
 border:none;
 border-radius:8px;
 cursor:pointer;
-font-weight:bold;
-}
-
-.modos{
-display:none;
-margin-top:8px;
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:6px;
-}
-
-.botonPatron{
-padding:5px;
-font-size:12px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-background:#00bfff;
-color:black;
 font-weight:bold;
 }
 
@@ -146,24 +132,34 @@ text-align:center;
 
 <div class="contenedor">
 
+<div class="topBar">
+
 <img id="logo" class="logo">
 
 <button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
 
+<select id="modoSelect" class="selectModo" onchange="seleccionarModo()">
+<option value="">-- Elegir modo --</option>
+<option>Letra X</option>
+<option>Letra L</option>
+<option>Letra H</option>
+<option>Letra T</option>
+<option>Diagonal Izq</option>
+<option>Diagonal Der</option>
+<option>4 Esquinas</option>
+<option>Forma O</option>
+<option>Tabla Llena</option>
+<option>Personalizado</option>
+</select>
+
 <button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
 
-<div id="listaModos" class="modos">
+</div>
 
-<button class="botonPatron" onclick="setModo('Letra X')">Letra X</button>
-<button class="botonPatron" onclick="setModo('Letra L')">Letra L</button>
-<button class="botonPatron" onclick="setModo('Letra H')">Letra H</button>
-<button class="botonPatron" onclick="setModo('Letra T')">Letra T</button>
-<button class="botonPatron" onclick="setModo('Diagonal Izq')">Diagonal Izq</button>
-<button class="botonPatron" onclick="setModo('Diagonal Der')">Diagonal Der</button>
-<button class="botonPatron" onclick="setModo('4 Esquinas')">4 Esquinas</button>
-<button class="botonPatron" onclick="setModo('Forma O')">Forma O</button>
-<button class="botonPatron" onclick="setModo('Tabla Llena')">Tabla Llena</button>
-
+<div id="editorPatron" style="display:none;margin-bottom:10px;">
+<div style="margin-bottom:5px;">Selecciona el patrón:</div>
+<div id="gridPatron" class="tabla"></div>
+<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
 </div>
 
 <div class="titulo">LA TERRAZA BINGO</div>
@@ -175,6 +171,8 @@ text-align:center;
 <div id="bingoAnim">🎉 BINGO 🎉</div>
 
 <script>
+
+// TABLA POR ID
 
 function generarTablaPorID(id){
 
@@ -225,24 +223,110 @@ return tabla;
 
 }
 
+// VARIABLES
+
 let modoActual="";
+let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
+
+// MOSTRAR MODOS
 
 function mostrarModos(){
 
-let m=document.getElementById("listaModos");
+let sel=document.getElementById("modoSelect");
 
-m.style.display = (m.style.display=="grid") ? "none" : "grid";
+sel.style.display = sel.style.display==="block" ? "none" : "block";
+
+}
+
+// SELECCIONAR MODO
+
+function seleccionarModo(){
+
+modoActual=document.getElementById("modoSelect").value;
+
+if(modoActual==="Personalizado"){
+
+document.getElementById("editorPatron").style.display="block";
+
+crearEditorPatron();
+
+}else{
+
+document.getElementById("editorPatron").style.display="none";
 
 }
 
-function setModo(m){
+}
 
-modoActual=m;
+// EDITOR PATRON
 
-alert("Modo seleccionado: "+m);
+function crearEditorPatron(){
+
+const grid=document.getElementById("gridPatron");
+
+grid.innerHTML="";
+
+for(let i=0;i<5;i++){
+
+for(let j=0;j<5;j++){
+
+let d=document.createElement("div");
+
+d.className="celda";
+
+if(i===2 && j===2){
+
+d.textContent="★";
+d.style.background="#ffd700";
+
+}else{
+
+d.onclick=()=>{
+
+patronPersonalizado[i][j]=!patronPersonalizado[i][j];
+d.classList.toggle("patron");
+
+};
 
 }
+
+grid.appendChild(d);
+
+}
+
+}
+
+}
+
+// GUARDAR PATRON
+
+function guardarPatron(){
+
+document.getElementById("editorPatron").style.display="none";
+alert("Patrón guardado");
+
+}
+
+// LIMPIAR TABLA
+
+function limpiarTabla(){
+
+document.querySelectorAll(".celda.marcado").forEach(c=>{
+c.classList.remove("marcado");
+});
+
+estados.forEach(tabla=>{
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+tabla[i][j]=false;
+}
+}
+});
+
+}
+
+// VERIFICAR
 
 function verificar(m){
 
@@ -282,12 +366,26 @@ return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j))&&
 case "Tabla Llena":
 return m.flat().every(v=>v);
 
+case "Personalizado":
+
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+if(patronPersonalizado[i][j]&&!m[i][j]&&!(i===2&&j===2)){
+return false;
+}
+}
+}
+
+return true;
+
 default:
 return false;
 
 }
 
 }
+
+// ANIMACION
 
 function mostrarBingo(){
 
@@ -298,29 +396,13 @@ contenedor.style.display="none";
 anim.style.display="block";
 
 setTimeout(()=>{
-
 anim.style.display="none";
 contenedor.style.display="block";
-
 },5000);
 
 }
 
-function limpiarTabla(){
-
-document.querySelectorAll(".celda.marcado").forEach(c=>{
-c.classList.remove("marcado");
-});
-
-estados.forEach(tabla=>{
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-tabla[i][j]=false;
-}
-}
-});
-
-}
+// PARAMS
 
 const params=new URLSearchParams(window.location.search);
 
@@ -379,31 +461,22 @@ grid.className="tabla";
 const letras=["B","I","N","G","O"];
 
 letras.forEach(l=>{
-
 let d=document.createElement("div");
-
 d.className="celda letra";
-
 d.textContent=l;
-
 grid.appendChild(d);
-
 });
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
-
 estados.push(estado);
 
 for(let i=0;i<5;i++){
-
 for(let j=0;j<5;j++){
 
 let valor=tabla[i][j];
 
 let d=document.createElement("div");
-
 d.className="celda";
-
 d.textContent=valor;
 
 if(typeof valor==="number"){
@@ -411,7 +484,6 @@ if(typeof valor==="number"){
 d.onclick=()=>{
 
 d.classList.toggle("marcado");
-
 estado[i][j]=d.classList.contains("marcado");
 
 if(verificar(estado)){
@@ -425,11 +497,9 @@ mostrarBingo();
 grid.appendChild(d);
 
 }
-
 }
 
 bloque.appendChild(grid);
-
 contenedor.appendChild(bloque);
 
 });
