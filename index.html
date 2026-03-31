@@ -92,13 +92,6 @@ width:100%;
 max-width:400px;
 }
 
-.titulo{
-font-size:20px;
-color:#ffd700;
-margin:10px 0;
-font-weight:bold;
-}
-
 .tabla{
 display:grid;
 grid-template-columns: repeat(5,1fr);
@@ -183,7 +176,6 @@ text-align:center;
 <div id="gridPatron" class="tabla"></div>
 <button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
 </div>
-
 
 <div id="tabla"></div>
 
@@ -279,13 +271,15 @@ document.getElementById("editorPatron").style.display="none";
 function limpiarTabla(){
 
 document.querySelectorAll(".celda.marcado").forEach(c=>{
-c.classList.remove("marcado");
+if(!c.classList.contains("centro")) c.classList.remove("marcado");
 });
 
 estados.forEach(tabla=>{
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
+if(!(i===2 && j===2)){
 tabla[i][j]=false;
+}
 }
 }
 });
@@ -418,7 +412,6 @@ logo.src=logoURL
 ? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
 : "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
 
-/* NOMBRE */
 let nombresParam = params.get("nombres");
 let nombres = nombresParam ? nombresParam.split(",") : [];
 document.getElementById("nombreJugador").textContent = nombres[0] ? nombres[0] : "";
@@ -434,12 +427,7 @@ let tabla=generarTablaPorID(id);
 
 let bloque=document.createElement("div");
 
-let titulo=document.createElement("div");
-titulo.textContent="TABLA T"+String(id).padStart(3,'0');
-titulo.style.color="#ffd700";
-titulo.style.marginBottom="5px";
-
-bloque.appendChild(titulo);
+/* 🔴 ELIMINADO TITULO */
 
 let grid=document.createElement("div");
 grid.className="tabla";
@@ -454,6 +442,7 @@ grid.appendChild(d);
 });
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
+estado[2][2]=true; // centro marcado
 estados.push(estado);
 
 for(let i=0;i<5;i++){
@@ -465,7 +454,9 @@ let d=document.createElement("div");
 d.className="celda";
 d.textContent=valor;
 
-if(typeof valor==="number"){
+if(i===2 && j===2){
+d.classList.add("marcado","centro");
+}else if(typeof valor==="number"){
 
 d.onclick=()=>{
 
