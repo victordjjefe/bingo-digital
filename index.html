@@ -292,7 +292,6 @@ tabla[i][j]=false;
 modoActual="";
 document.getElementById("modoSelect").value="";
 
-// reset bingo
 bingoActivo=false;
 
 }
@@ -302,14 +301,8 @@ function verificar(m){
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
 switch(modoActual){
-
-case "Letra X":
-return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
-c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
-
 default:
 return false;
-
 }
 
 }
@@ -338,10 +331,18 @@ const params=new URLSearchParams(window.location.search);
 const vence=params.get("vence");
 const nombre=params.get("nombre");
 
-const hoy=new Date();
-if(vence && new Date(vence) < hoy){
+function inicioDia(d){
+return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+if(vence){
+let fechaVence=new Date(vence);
+let hoy=inicioDia(new Date());
+
+if(inicioDia(fechaVence) < hoy){
 document.getElementById("expiradoMsg").style.display="flex";
 document.querySelector(".contenedor").style.display="none";
+}
 }
 
 if(nombre){
