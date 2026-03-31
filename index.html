@@ -18,13 +18,7 @@ min-height:100vh;
 padding:10px;
 }
 
-.logo{
-max-width:100%;
-max-height:140px;
-object-fit:contain;
-display:block;
-margin:auto;
-}
+.logo{max-height:140px;display:block;margin:auto;}
 
 .logoNombre{
 display:flex;
@@ -32,20 +26,16 @@ align-items:center;
 justify-content:center;
 gap:12px;
 flex-wrap:wrap;
-margin-bottom:5px;
 }
 
 .nombreJugador{
 font-size:20px;
 font-weight:700;
 color:#ffd700;
-letter-spacing:1px;
 padding:6px 12px;
 border-radius:10px;
 background:linear-gradient(145deg,#111,#222);
 box-shadow:0 0 10px rgba(255,215,0,0.4);
-border:1px solid rgba(255,215,0,0.3);
-text-transform:uppercase;
 }
 
 .topBar{
@@ -56,56 +46,30 @@ gap:5px;
 margin-bottom:15px;
 }
 
-.botonModo{
-padding:6px 10px;
-font-size:14px;
-background:#ffd700;
-color:black;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
+.botonModo{background:#ffd700;padding:6px 10px;border-radius:8px;}
+.botonLimpiar{background:#ff4444;color:white;padding:6px 10px;border-radius:8px;}
 
-.selectModo{
-padding:6px;
-border-radius:8px;
-display:none;
-}
-
-.botonLimpiar{
-padding:5px 10px;
-font-size:13px;
-background:#ff4444;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
+.selectModo{display:none;}
 
 .contenedor{
 background:rgba(0,0,0,0.7);
 padding:15px;
 border-radius:15px;
 box-shadow:0 0 20px #ffd700;
-text-align:center;
-width:100%;
 max-width:400px;
+width:100%;
 }
 
 .bloqueTabla{
-background:rgba(20,20,20,0.9);
+background:#111;
 padding:10px;
 border-radius:15px;
 margin-bottom:15px;
-box-shadow:0 0 10px rgba(0,0,0,0.8), 0 0 10px rgba(255,215,0,0.2);
-border:1px solid rgba(255,255,255,0.05);
 }
 
 .tabla{
 display:grid;
-grid-template-columns: repeat(5,1fr);
+grid-template-columns:repeat(5,1fr);
 gap:6px;
 }
 
@@ -114,17 +78,13 @@ background:#111;
 display:flex;
 justify-content:center;
 align-items:center;
-aspect-ratio:1/1;
-font-size:18px;
+aspect-ratio:1;
 border-radius:10px;
-font-weight:bold;
 border:2px solid #444;
+font-weight:bold;
 }
 
-.letra{
-background:#ffd700;
-color:black;
-}
+.letra{background:#ffd700;color:black;}
 
 .marcado{
 background:#00ff00 !important;
@@ -132,16 +92,13 @@ color:black;
 box-shadow:0 0 10px #00ff00;
 }
 
-.centro{
-animation: brilloCentro 1.5s infinite alternate;
+.centro{animation:brillo 1.5s infinite alternate;}
+
+@keyframes brillo{
+0%{box-shadow:0 0 10px #0f0;}
+100%{box-shadow:0 0 25px #0f0;}
 }
 
-@keyframes brilloCentro{
-0%{ box-shadow:0 0 10px #00ff00; }
-100%{ box-shadow:0 0 25px #00ff00; }
-}
-
-/* BINGO FULL */
 #bingoAnim{
 position:fixed;
 top:0;
@@ -165,12 +122,6 @@ transform:translate(-50%,-50%);
 font-size:28px;
 display:none;
 color:#ffd700;
-animation:parpadeo .7s infinite alternate;
-}
-
-@keyframes parpadeo{
-0%{opacity:1;}
-100%{opacity:0.4;}
 }
 </style>
 </head>
@@ -206,10 +157,10 @@ animation:parpadeo .7s infinite alternate;
 
 </div>
 
-<div id="editorPatron" style="display:none;margin-bottom:10px;">
+<div id="editorPatron" style="display:none">
 <div>Selecciona el patrón:</div>
 <div id="gridPatron" class="tabla"></div>
-<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
+<button onclick="guardarPatron()">Guardar patrón</button>
 </div>
 
 <div id="tabla"></div>
@@ -221,7 +172,7 @@ animation:parpadeo .7s infinite alternate;
 
 <script>
 
-/* VENCIMIENTO (NO TOCADO) */
+/* VENCIMIENTO */
 const params=new URLSearchParams(window.location.search);
 const vence=params.get("vence");
 if(vence){
@@ -281,35 +232,136 @@ document.getElementById("editorPatron").style.display="none";
 }
 }
 
-/* LIMPIAR */
-function limpiarTabla(){
-
-document.querySelectorAll(".celda.marcado").forEach(c=>{
-if(!c.classList.contains("centro")){
-c.classList.remove("marcado");
-}
-});
-
-estados.forEach(tabla=>{
+/* PATRON */
+function crearEditorPatron(){
+let grid=document.getElementById("gridPatron");
+grid.innerHTML="";
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
-tabla[i][j]=false;
+let d=document.createElement("div");
+d.className="celda";
+if(i===2&&j===2){
+d.textContent="★";
+}else{
+d.onclick=()=>{
+patronPersonalizado[i][j]=!patronPersonalizado[i][j];
+d.classList.toggle("marcado");
+};
+}
+grid.appendChild(d);
 }
 }
-tabla[2][2]=true;
+}
+
+function guardarPatron(){
+document.getElementById("editorPatron").style.display="none";
+}
+
+/* LIMPIAR */
+function limpiarTabla(){
+document.querySelectorAll(".celda.marcado").forEach(c=>{
+if(!c.classList.contains("centro")) c.classList.remove("marcado");
 });
-
+estados.forEach(t=>{
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++) t[i][j]=false;
+}
+t[2][2]=true;
+});
 bingoActivo=false;
+}
 
-document.getElementById("bingoAnim").style.display="none";
-document.querySelector(".contenedor").style.display="block";
+/* VERIFICAR */
+function verificar(m){
+if(!modoActual) return false;
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
+
+switch(modoActual){
+
+case "Letra X":
+return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]]
+.every(([i,j])=>c(i,j));
+
+case "Letra L":
+return [...Array(5).keys()].every(i=>c(i,0)) &&
+[...Array(5).keys()].every(j=>c(4,j));
+
+case "Letra H":
+return [...Array(5).keys()].every(i=>c(i,0)&&c(i,4)) &&
+[...Array(5).keys()].every(j=>c(2,j));
+
+case "Letra T":
+return [...Array(5).keys()].every(j=>c(0,j)) &&
+[...Array(5).keys()].every(i=>c(i,2));
+
+case "Diagonal Izq":
+return [...Array(5).keys()].every(i=>c(i,i));
+
+case "Diagonal Der":
+return [...Array(5).keys()].every(i=>c(i,4-i));
+
+case "4 Esquinas":
+return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
+
+case "Forma O":
+return [...Array(5).keys()].every(j=>c(0,j)&&c(4,j)) &&
+[1,2,3].every(i=>c(i,0)&&c(i,4));
+
+case "Tabla Llena":
+return m.flat().every(v=>v);
+
+case "Personalizado":
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+if(patronPersonalizado[i][j]&&!c(i,j)) return false;
+}
+}
+return true;
+
+default:
+return false;
+}
+}
+
+/* CASI BINGO */
+function verificarCasiBingo(m){
+if(!modoActual) return false;
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
+
+let coords=[];
+
+switch(modoActual){
+case "Letra X":
+coords=[[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]];
+break;
+case "4 Esquinas":
+coords=[[0,0],[0,4],[4,0],[4,4]];
+break;
+case "Diagonal Izq":
+coords=[...Array(5).keys()].map(i=>[i,i]);
+break;
+case "Diagonal Der":
+coords=[...Array(5).keys()].map(i=>[i,4-i]);
+break;
+case "Tabla Llena":
+return m.flat().filter(v=>v).length===24;
+default:
+return false;
+}
+
+let faltan=coords.filter(([i,j])=>!c(i,j)).length;
+return faltan===1;
+}
+
+function mostrarCasiBingo(){
+let a=document.getElementById("casiBingoAnim");
+a.style.display="block";
+setTimeout(()=>a.style.display="none",2000);
 }
 
 /* BINGO */
 function mostrarBingo(){
-
 if(bingoActivo) return;
-
 bingoActivo=true;
 
 let b=document.getElementById("bingoAnim");
@@ -326,66 +378,31 @@ contenedor.style.display="block";
 },4000);
 }
 
-/* TABLA ORIGINAL */
+/* TABLA */
 function generarTablaPorID(id){
-let seed=12345;
-function random(){
-seed=(seed*9301+49297)%233280;
-return seed/233280;
-}
-function randomUnique(min,max,count){
-let nums=[];
-while(nums.length<count){
-let n=Math.floor(random()*(max-min+1))+min;
-if(!nums.includes(n)) nums.push(n);
-}
-return nums;
-}
-let tabla;
-for(let t=1;t<=id;t++){
-let B=randomUnique(1,15,5);
-let I=randomUnique(16,30,5);
-let N=randomUnique(31,45,5);
-let G=randomUnique(46,60,5);
-let O=randomUnique(61,75,5);
-tabla=[];
+let tabla=[];
 for(let i=0;i<5;i++){
-tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+tabla[i]=[];
+for(let j=0;j<5;j++){
+tabla[i][j]=Math.floor(Math.random()*75)+1;
 }
-tabla[2][2]="T"+String(t).padStart(3,'0');
 }
+tabla[2][2]="T"+String(id).padStart(3,'0');
 return tabla;
 }
 
 /* PARAMS */
-const logoURL=params.get("logo");
-document.getElementById("logo").src=logoURL
-? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
-: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
-
 document.getElementById("nombreJugador").textContent=params.get("nombres")||"";
 
-let ids=params.get("tablas").split(",").map(n=>parseInt(n));
+let ids=params.get("tablas").split(",");
 
 let contenedor=document.getElementById("tabla");
 
-/* CREAR TABLAS */
 ids.forEach(id=>{
-
 let tabla=generarTablaPorID(id);
-
-let bloque=document.createElement("div");
-bloque.className="bloqueTabla";
 
 let grid=document.createElement("div");
 grid.className="tabla";
-
-["B","I","N","G","O"].forEach(l=>{
-let d=document.createElement("div");
-d.className="celda letra";
-d.textContent=l;
-grid.appendChild(d);
-});
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
 estado[2][2]=true;
@@ -393,7 +410,6 @@ estados.push(estado);
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
-
 let d=document.createElement("div");
 d.className="celda";
 d.textContent=tabla[i][j];
@@ -402,19 +418,14 @@ if(i===2&&j===2){
 d.classList.add("marcado","centro");
 }else{
 d.onclick=()=>{
-
-document.getElementById("bingoAnim").style.display="none";
-document.querySelector(".contenedor").style.display="block";
-
 beep();
 
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
 
-if(!verificar(estado)){
-bingoActivo=false;
-}
+if(!verificar(estado)) bingoActivo=false;
 
+if(verificarCasiBingo(estado)) mostrarCasiBingo();
 if(verificar(estado)) mostrarBingo();
 };
 }
@@ -423,34 +434,8 @@ grid.appendChild(d);
 }
 }
 
-bloque.appendChild(grid);
-contenedor.appendChild(bloque);
-
+contenedor.appendChild(grid);
 });
-
-/* VERIFICAR */
-function verificar(m){
-const c=(i,j)=>m[i][j]||(i===2&&j===2);
-
-switch(modoActual){
-case "Letra X":
-return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]]
-.every(([i,j])=>c(i,j));
-case "Tabla Llena":
-return m.flat().every(v=>v);
-case "Personalizado":
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-if(patronPersonalizado[i][j]&&!c(i,j)) return false;
-}
-}
-return true;
-default:
-return false;
-}
-}
-
 </script>
-
 </body>
 </html>
