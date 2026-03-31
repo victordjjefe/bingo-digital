@@ -72,13 +72,6 @@ width:100%;
 max-width:400px;
 }
 
-.titulo{
-font-size:20px;
-color:#ffd700;
-margin:10px 0;
-font-weight:bold;
-}
-
 .tabla{
 display:grid;
 grid-template-columns: repeat(5,1fr);
@@ -106,6 +99,13 @@ color:black;
 background:#00ff00 !important;
 color:black;
 box-shadow:0 0 10px #00ff00;
+}
+
+.centro{
+background:#ffd700 !important;
+color:black;
+box-shadow:0 0 15px #ffd700, 0 0 25px #ffd700;
+font-weight:bold;
 }
 
 .patron{
@@ -160,8 +160,6 @@ text-align:center;
 <div id="gridPatron" class="tabla"></div>
 <button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
 </div>
-
-<div class="titulo">LA TERRAZA BINGO</div>
 
 <div id="tabla"></div>
 
@@ -407,13 +405,6 @@ let tabla=generarTablaPorID(id);
 
 let bloque=document.createElement("div");
 
-let titulo=document.createElement("div");
-titulo.textContent="TABLA T"+String(id).padStart(3,'0');
-titulo.style.color="#ffd700";
-titulo.style.marginBottom="5px";
-
-bloque.appendChild(titulo);
-
 let grid=document.createElement("div");
 grid.className="tabla";
 
@@ -438,7 +429,10 @@ let d=document.createElement("div");
 d.className="celda";
 d.textContent=valor;
 
-if(typeof valor==="number"){
+if(i===2 && j===2){
+d.classList.add("centro");
+estado[i][j]=true;
+}else if(typeof valor==="number"){
 
 d.onclick=()=>{
 
@@ -468,4 +462,4 @@ contenedor.appendChild(bloque);
 </script>
 
 </body>
-</html> hagamos una mejora
+</html>
