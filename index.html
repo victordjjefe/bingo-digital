@@ -19,11 +19,7 @@ min-height:100vh;
 padding:10px;
 }
 
-.logo{
-max-width:100%;
-max-height:120px;
-object-fit:contain;
-}
+.logo{max-height:120px;}
 
 .logoNombre{
 display:flex;
@@ -31,20 +27,12 @@ align-items:center;
 justify-content:center;
 gap:12px;
 flex-wrap:wrap;
-margin-bottom:5px;
 }
 
 .nombreJugador{
 font-size:20px;
-font-weight:700;
+font-weight:bold;
 color:#ffd700;
-letter-spacing:1px;
-padding:6px 12px;
-border-radius:10px;
-background:linear-gradient(145deg,#111,#222);
-box-shadow:0 0 10px rgba(255,215,0,0.4);
-border:1px solid rgba(255,215,0,0.3);
-text-transform:uppercase;
 }
 
 .topBar{
@@ -55,56 +43,39 @@ gap:5px;
 margin-bottom:15px;
 }
 
-.botonModo{
+button{
 padding:6px 10px;
-font-size:14px;
-background:#ffd700;
-color:black;
 border:none;
 border-radius:8px;
 cursor:pointer;
 font-weight:bold;
 }
 
-.selectModo{
-padding:6px;
-border-radius:8px;
-display:none;
-}
+.botonModo{background:#ffd700;}
+.botonLimpiar{background:#ff4444;color:white;}
 
-.botonLimpiar{
-padding:5px 10px;
-font-size:13px;
-background:#ff4444;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
+.selectModo{display:none;}
 
 .contenedor{
 background:rgba(0,0,0,0.7);
 padding:15px;
 border-radius:15px;
 box-shadow:0 0 20px #ffd700;
-text-align:center;
-width:100%;
 max-width:400px;
+width:100%;
 }
 
 .bloqueTabla{
-background:rgba(20,20,20,0.9);
+background:#111;
 padding:10px;
 border-radius:15px;
 margin-bottom:15px;
-box-shadow:0 0 10px rgba(0,0,0,0.8), 0 0 10px rgba(255,215,0,0.2);
-border:1px solid rgba(255,255,255,0.05);
+box-shadow:0 0 10px rgba(255,215,0,0.2);
 }
 
 .tabla{
 display:grid;
-grid-template-columns: repeat(5,1fr);
+grid-template-columns:repeat(5,1fr);
 gap:6px;
 }
 
@@ -113,17 +84,13 @@ background:#111;
 display:flex;
 justify-content:center;
 align-items:center;
-aspect-ratio:1/1;
-font-size:18px;
+aspect-ratio:1;
 border-radius:10px;
-font-weight:bold;
 border:2px solid #444;
+font-weight:bold;
 }
 
-.letra{
-background:#ffd700;
-color:black;
-}
+.letra{background:#ffd700;color:black;}
 
 .marcado{
 background:#00ff00 !important;
@@ -132,38 +99,12 @@ box-shadow:0 0 10px #00ff00;
 }
 
 .centro{
-animation: brilloCentro 1.5s infinite alternate;
+animation:brillo 1.5s infinite alternate;
 }
 
-.casiBingo{
-animation: brilloFuerte 0.5s infinite alternate !important;
-}
-
-@keyframes brilloCentro{
-0%{ box-shadow:0 0 10px #00ff00; }
-100%{ box-shadow:0 0 25px #00ff00; }
-}
-
-@keyframes brilloFuerte{
-0%{ box-shadow:0 0 15px #00ff00; }
-100%{ box-shadow:0 0 40px #00ff00; }
-}
-
-#casiBingoAnim{
-position:fixed;
-top:30%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:30px;
-color:#ffd700;
-font-weight:bold;
-display:none;
-animation: parpadeo 0.7s infinite alternate;
-}
-
-@keyframes parpadeo{
-0%{opacity:1;}
-100%{opacity:0.4;}
+@keyframes brillo{
+0%{box-shadow:0 0 10px #0f0;}
+100%{box-shadow:0 0 25px #0f0;}
 }
 
 #bingoAnim{
@@ -172,9 +113,24 @@ top:40%;
 left:50%;
 transform:translate(-50%,-50%);
 font-size:50px;
-color:#00ff00;
-font-weight:bold;
 display:none;
+color:#0f0;
+}
+
+#casiBingoAnim{
+position:fixed;
+top:30%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:28px;
+display:none;
+color:#ffd700;
+animation:parpadeo .7s infinite alternate;
+}
+
+@keyframes parpadeo{
+0%{opacity:1;}
+100%{opacity:0.4;}
 }
 
 </style>
@@ -211,21 +167,35 @@ display:none;
 
 </div>
 
-<div id="editorPatron" style="display:none;margin-bottom:10px;">
+<div id="editorPatron" style="display:none">
 <div>Selecciona el patrón:</div>
 <div id="gridPatron" class="tabla"></div>
-<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
+<button onclick="guardarPatron()">Guardar patrón</button>
 </div>
 
 <div id="tabla"></div>
 
 </div>
 
-<div id="casiBingoAnim">⚠️ FALTA 1 PARA BINGO</div>
 <div id="bingoAnim">🎉 BINGO 🎉</div>
+<div id="casiBingoAnim">⚠️ FALTA 1 PARA BINGO</div>
 
 <script>
 
+/* FECHA VENCIMIENTO */
+const params=new URLSearchParams(window.location.search);
+const vence=params.get("vence");
+
+if(vence){
+let hoy=new Date();
+let fechaVence=new Date(vence+"T23:59:59");
+if(hoy>fechaVence){
+document.body.innerHTML="<h2 style='color:red;text-align:center;margin-top:50px;'>⛔ TABLA VENCIDA</h2>";
+throw new Error("Vencido");
+}
+}
+
+/* AUDIO */
 let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 
 function beep(){
@@ -239,21 +209,25 @@ g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
 }
 
 function aplausos(){
-let o=audioCtx.createOscillator();
-let g=audioCtx.createGain();
-o.type="triangle";
-o.connect(g);
-g.connect(audioCtx.destination);
-o.frequency.setValueAtTime(300,audioCtx.currentTime);
-o.frequency.exponentialRampToValueAtTime(1200,audioCtx.currentTime+1);
-o.start();
-g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+1);
+let buffer=audioCtx.createBuffer(1,44100,44100);
+let data=buffer.getChannelData(0);
+for(let i=0;i<44100;i++){data[i]=Math.random()*2-1;}
+let src=audioCtx.createBufferSource();
+src.buffer=buffer;
+let gain=audioCtx.createGain();
+gain.gain.setValueAtTime(0.5,audioCtx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+1);
+src.connect(gain);
+gain.connect(audioCtx.destination);
+src.start();
 }
 
+/* VARIABLES */
 let modoActual="";
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
 
+/* UI */
 function mostrarModos(){
 let s=document.getElementById("modoSelect");
 s.style.display=s.style.display==="block"?"none":"block";
@@ -270,8 +244,9 @@ document.getElementById("editorPatron").style.display="none";
 }
 }
 
+/* PATRON */
 function crearEditorPatron(){
-const grid=document.getElementById("gridPatron");
+let grid=document.getElementById("gridPatron");
 grid.innerHTML="";
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
@@ -279,7 +254,6 @@ let d=document.createElement("div");
 d.className="celda";
 if(i===2&&j===2){
 d.textContent="★";
-d.style.background="#ffd700";
 }else{
 d.onclick=()=>{
 patronPersonalizado[i][j]=!patronPersonalizado[i][j];
@@ -295,40 +269,71 @@ function guardarPatron(){
 document.getElementById("editorPatron").style.display="none";
 }
 
-function mostrarCasiBingo(){
-let aviso=document.getElementById("casiBingoAnim");
-aviso.style.display="block";
-setTimeout(()=>{aviso.style.display="none";},2000);
-}
+/* VERIFICAR */
+function verificar(m){
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
-function verificarCasiBingo(m){
-return m.flat().filter(v=>v).length>=24;
-}
+switch(modoActual){
 
-function mostrarBingo(){
-aplausos();
-let anim=document.getElementById("bingoAnim");
-anim.style.display="block";
-setTimeout(()=>{anim.style.display="none";},4000);
-}
+case "Letra X":
+return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
+c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
 
-function limpiarTabla(){
-document.querySelectorAll(".celda.marcado").forEach(c=>{
-if(!c.classList.contains("centro")) c.classList.remove("marcado");
-c.classList.remove("casiBingo");
-});
-estados.forEach(tabla=>{
+case "Tabla Llena":
+return m.flat().every(v=>v);
+
+case "Personalizado":
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
-if(!(i===2&&j===2)) tabla[i][j]=false;
+if(patronPersonalizado[i][j]&&!c(i,j)) return false;
 }
 }
-});
+return true;
+
+default:
+return false;
+}
 }
 
+/* CASI BINGO REAL */
+function verificarCasiBingo(m){
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
+
+if(modoActual==="Letra X"){
+let coords=[[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]];
+let faltan=0;
+coords.forEach(([i,j])=>{if(!c(i,j)) faltan++;});
+return faltan===1;
+}
+
+if(modoActual==="Tabla Llena"){
+return m.flat().filter(v=>v).length===24;
+}
+
+return false;
+}
+
+function mostrarCasiBingo(){
+let a=document.getElementById("casiBingoAnim");
+a.style.display="block";
+setTimeout(()=>a.style.display="none",2000);
+}
+
+/* BINGO */
+function mostrarBingo(){
+let b=document.getElementById("bingoAnim");
+b.style.display="block";
+aplausos();
+setTimeout(()=>b.style.display="none",5000);
+}
+
+/* GENERAR TABLA ORIGINAL */
 function generarTablaPorID(id){
 let seed=12345;
-function random(){seed=(seed*9301+49297)%233280;return seed/233280;}
+function random(){
+seed=(seed*9301+49297)%233280;
+return seed/233280;
+}
 function randomUnique(min,max,count){
 let nums=[];
 while(nums.length<count){
@@ -345,42 +350,31 @@ let N=randomUnique(31,45,5);
 let G=randomUnique(46,60,5);
 let O=randomUnique(61,75,5);
 tabla=[];
-for(let i=0;i<5;i++) tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+for(let i=0;i<5;i++){
+tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+}
 tabla[2][2]="T"+String(t).padStart(3,'0');
 }
 return tabla;
 }
 
-function verificar(m){
-const c=(i,j)=>m[i][j]||(i===2&&j===2);
-switch(modoActual){
-case "Tabla Llena": return m.flat().every(v=>v);
-case "Letra X": return c(0,0)&&c(1,1)&&c(3,3)&&c(4,4)&&c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
-case "Personalizado":
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-if(patronPersonalizado[i][j]&&!m[i][j]&&(i!==2||j!==2)) return false;
-}}
-return true;
-default:return false;
-}
-}
-
-const params=new URLSearchParams(window.location.search);
-
-document.getElementById("logo").src=
-params.get("logo")
-? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+params.get("logo")+".png"
+/* PARAMS */
+const logoURL=params.get("logo");
+document.getElementById("logo").src=logoURL
+? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
 : "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
 
 document.getElementById("nombreJugador").textContent=params.get("nombres")||"";
 
-let ids=params.get("tablas").split(",").map(n=>parseInt(n));
+let ids=params.get("tablas").split(",");
 
-const contenedor=document.getElementById("tabla");
+let contenedor=document.getElementById("tabla");
 
+/* CREAR TABLAS */
 ids.forEach(id=>{
+
 let tabla=generarTablaPorID(id);
+
 let bloque=document.createElement("div");
 bloque.className="bloqueTabla";
 
@@ -400,6 +394,7 @@ estados.push(estado);
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
+
 let d=document.createElement("div");
 d.className="celda";
 d.textContent=tabla[i][j];
@@ -412,16 +407,9 @@ beep();
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
 
-if(verificarCasiBingo(estado)){
-document.querySelectorAll(".centro").forEach(c=>c.classList.add("casiBingo"));
-mostrarCasiBingo();
-}else{
-document.querySelectorAll(".centro").forEach(c=>c.classList.remove("casiBingo"));
-}
+if(verificarCasiBingo(estado)) mostrarCasiBingo();
 
-if(verificar(estado)){
-mostrarBingo();
-}
+if(verificar(estado)) mostrarBingo();
 };
 }
 
@@ -431,6 +419,7 @@ grid.appendChild(d);
 
 bloque.appendChild(grid);
 contenedor.appendChild(bloque);
+
 });
 
 </script>
