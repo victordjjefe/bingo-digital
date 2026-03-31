@@ -192,10 +192,17 @@ text-align:center;
 <option>4 Esquinas</option>
 <option>Forma O</option>
 <option>Tabla Llena</option>
+<option>Personalizado</option>
 </select>
 
 <button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
 
+</div>
+
+<div id="editorPatron" style="display:none;margin-bottom:10px;">
+<div style="margin-bottom:5px;">Selecciona el patrón:</div>
+<div id="gridPatron" class="tabla"></div>
+<button onclick="guardarPatron()" class="botonModo">Guardar patrón</button>
 </div>
 
 <div id="tabla"></div>
@@ -206,7 +213,20 @@ text-align:center;
 
 <script>
 
+let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+
+function beep(){
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
+o.connect(g);
+g.connect(audioCtx.destination);
+o.frequency.value=800;
+o.start();
+g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
+}
+
 let modoActual="";
+let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
 
 function mostrarModos(){
@@ -216,6 +236,39 @@ s.style.display=s.style.display==="block"?"none":"block";
 
 function seleccionarModo(){
 modoActual=document.getElementById("modoSelect").value;
+
+if(modoActual==="Personalizado"){
+document.getElementById("editorPatron").style.display="block";
+crearEditorPatron();
+}else{
+document.getElementById("editorPatron").style.display="none";
+}
+}
+
+function crearEditorPatron(){
+const grid=document.getElementById("gridPatron");
+grid.innerHTML="";
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+let d=document.createElement("div");
+d.className="celda";
+if(i===2 && j===2){
+d.textContent="★";
+d.style.background="#ffd700";
+}else{
+d.onclick=()=>{
+patronPersonalizado[i][j]=!patronPersonalizado[i][j];
+d.classList.toggle("patron");
+};
+}
+grid.appendChild(d);
+}
+}
+}
+
+function guardarPatron(){
+document.getElementById("editorPatron").style.display="none";
+alert("Patrón guardado");
 }
 
 function verificar(m){
@@ -225,39 +278,24 @@ switch(modoActual){
 case "Letra X":
 return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
 c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
-case "Letra L":
-return [0,1,2,3,4].every(i=>c(i,0))&&
-[0,1,2,3,4].every(j=>c(4,j));
-case "Letra H":
-return [0,1,2,3,4].every(i=>c(i,0)&&c(i,4))&&
-[0,1,2,3,4].every(j=>c(2,j));
-case "Letra T":
-return [0,1,2,3,4].every(j=>c(0,j))&&
-[0,1,2,3,4].every(i=>c(i,2));
-case "Diagonal Izq":
-return [0,1,2,3,4].every(i=>c(i,i));
-case "Diagonal Der":
-return [0,1,2,3,4].every(i=>c(i,4-i));
-case "4 Esquinas":
-return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
-case "Forma O":
-return [0,1,2,3,4].every(j=>c(0,j)&&c(4,j))&&
-[1,2,3].every(i=>c(i,0)&&c(i,4));
 case "Tabla Llena":
 return m.flat().every(v=>v);
+case "Personalizado":
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+if(patronPersonalizado[i][j]&&!m[i][j]&&!(i===2&&j===2)){
+return false;
+}
+}
+}
+return true;
 default:
 return false;
 }
 }
 
 function verificarCasiBingo(m){
-let total=0;
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-if(m[i][j] || (i===2&&j===2)) total++;
-}
-}
-return total>=24;
+return m.flat().filter(v=>v).length>=24;
 }
 
 function limpiarTabla(){
@@ -319,21 +357,15 @@ return tabla;
 
 const params=new URLSearchParams(window.location.search);
 
-/* LOGO */
 const logoURL=params.get("logo");
-const logo=document.getElementById("logo");
-
-logo.src=logoURL
+document.getElementById("logo").src=logoURL
 ? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
 : "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
 
-/* NOMBRE */
-let nombresParam = params.get("nombres");
-let nombres = nombresParam ? nombresParam.split(",") : [];
-document.getElementById("nombreJugador").textContent = nombres[0] ? nombres[0] : "";
+let nombres=params.get("nombres");
+document.getElementById("nombreJugador").textContent = nombres ? nombres : "";
 
-let lista=params.get("tablas");
-let ids=lista.split(",").map(n=>parseInt(n));
+let ids=params.get("tablas").split(",").map(n=>parseInt(n));
 
 const contenedor=document.getElementById("tabla");
 
@@ -347,9 +379,7 @@ bloque.className="bloqueTabla";
 let grid=document.createElement("div");
 grid.className="tabla";
 
-const letras=["B","I","N","G","O"];
-
-letras.forEach(l=>{
+["B","I","N","G","O"].forEach(l=>{
 let d=document.createElement("div");
 d.className="celda letra";
 d.textContent=l;
@@ -363,18 +393,16 @@ estados.push(estado);
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
 
-let valor=tabla[i][j];
-
 let d=document.createElement("div");
 d.className="celda";
-d.textContent=valor;
+d.textContent=tabla[i][j];
 
 if(i===2 && j===2){
 d.classList.add("marcado","centro");
-}else if(typeof valor==="number"){
+}else{
 
 d.onclick=()=>{
-
+beep();
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
 
@@ -387,7 +415,6 @@ document.querySelectorAll(".centro").forEach(c=>c.classList.remove("casiBingo"))
 if(verificar(estado)){
 mostrarBingo();
 }
-
 };
 
 }
