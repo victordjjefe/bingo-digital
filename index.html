@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Tabla Bingo</title>
+<title>Bingo</title>
 
 <style>
 body{
@@ -14,63 +14,79 @@ font-family:Arial;
 display:flex;
 flex-direction:column;
 align-items:center;
-min-height:100vh;
 padding:10px;
 }
 
-.logo{max-height:140px;display:block;margin:auto;}
+/* LOGO */
+.logo{
+max-height:140px;
+display:block;
+margin:auto;
+}
 
 .logoNombre{
 display:flex;
 align-items:center;
 justify-content:center;
-gap:12px;
-flex-wrap:wrap;
+gap:10px;
+margin-bottom:10px;
 }
 
 .nombreJugador{
-font-size:20px;
-font-weight:700;
 color:#ffd700;
-padding:6px 12px;
-border-radius:10px;
-background:linear-gradient(145deg,#111,#222);
-box-shadow:0 0 10px rgba(255,215,0,0.4);
+font-weight:bold;
+font-size:20px;
 }
 
-.topBar{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:5px;
-margin-bottom:15px;
-}
-
-.botonModo{background:#ffd700;padding:6px 10px;border-radius:8px;}
-.botonLimpiar{background:#ff4444;color:white;padding:6px 10px;border-radius:8px;}
-
-.selectModo{display:none;}
-
+/* CONTENEDOR */
 .contenedor{
 background:rgba(0,0,0,0.7);
 padding:15px;
 border-radius:15px;
 box-shadow:0 0 20px #ffd700;
-max-width:400px;
+max-width:420px;
 width:100%;
 }
 
+/* BOTONES */
+.topBar{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:6px;
+margin-bottom:15px;
+}
+
+.botonModo, .botonLimpiar{
+padding:6px 10px;
+border-radius:8px;
+border:none;
+font-weight:bold;
+cursor:pointer;
+}
+
+.botonModo{background:#ffd700;}
+.botonLimpiar{background:#ff4444;color:white;}
+
+.selectModo{
+display:none;
+padding:5px;
+border-radius:6px;
+}
+
+/* TABLA */
 .bloqueTabla{
 background:#111;
 padding:10px;
-border-radius:15px;
+border-radius:12px;
 margin-bottom:15px;
+box-shadow:0 0 10px #000;
 }
 
 .tabla{
 display:grid;
 grid-template-columns:repeat(5,1fr);
-gap:6px;
+gap:5px;
 }
 
 .celda{
@@ -79,7 +95,7 @@ display:flex;
 justify-content:center;
 align-items:center;
 aspect-ratio:1;
-border-radius:10px;
+border-radius:8px;
 border:2px solid #444;
 font-weight:bold;
 }
@@ -89,16 +105,13 @@ font-weight:bold;
 .marcado{
 background:#00ff00 !important;
 color:black;
-box-shadow:0 0 10px #00ff00;
 }
 
-.centro{animation:brillo 1.5s infinite alternate;}
-
-@keyframes brillo{
-0%{box-shadow:0 0 10px #0f0;}
-100%{box-shadow:0 0 25px #0f0;}
+.centro{
+box-shadow:0 0 15px #00ff00;
 }
 
+/* BINGO */
 #bingoAnim{
 position:fixed;
 top:0;
@@ -114,12 +127,13 @@ color:#00ff00;
 z-index:9999;
 }
 
+/* CASI */
 #casiBingoAnim{
 position:fixed;
 top:30%;
 left:50%;
 transform:translate(-50%,-50%);
-font-size:28px;
+font-size:26px;
 display:none;
 color:#ffd700;
 }
@@ -158,9 +172,9 @@ color:#ffd700;
 </div>
 
 <div id="editorPatron" style="display:none">
-<div>Selecciona el patrón:</div>
+<div>Selecciona patrón</div>
 <div id="gridPatron" class="tabla"></div>
-<button onclick="guardarPatron()">Guardar patrón</button>
+<button onclick="guardarPatron()">Guardar</button>
 </div>
 
 <div id="tabla"></div>
@@ -172,48 +186,49 @@ color:#ffd700;
 
 <script>
 
-/* VENCIMIENTO */
-const params=new URLSearchParams(window.location.search);
+/* PARAMS + VENCIMIENTO */
+const params=new URLSearchParams(location.search);
+
 const vence=params.get("vence");
 if(vence){
 let hoy=new Date();
 let v=new Date(vence+"T23:59:59");
 if(hoy>v){
-document.body.innerHTML="<h1 style='color:red;text-align:center;margin-top:50px;'>⛔ TABLA VENCIDA</h1>";
+document.body.innerHTML="<h1 style='color:red;text-align:center'>⛔ VENCIDA</h1>";
 throw new Error();
 }
 }
 
+/* LOGO */
+const logoURL=params.get("logo");
+document.getElementById("logo").src=logoURL
+? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
+: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
+
+document.getElementById("nombreJugador").textContent=params.get("nombres")||"";
+
 /* AUDIO */
 let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-
 function beep(){
 let o=audioCtx.createOscillator();
 let g=audioCtx.createGain();
-o.connect(g); g.connect(audioCtx.destination);
-o.frequency.value=800;
+o.connect(g);g.connect(audioCtx.destination);
 o.start();
-g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
+g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.2);
 }
-
 function aplausos(){
-let buffer=audioCtx.createBuffer(1,44100,44100);
-let data=buffer.getChannelData(0);
-for(let i=0;i<44100;i++){data[i]=Math.random()*2-1;}
-let src=audioCtx.createBufferSource();
-src.buffer=buffer;
-let g=audioCtx.createGain();
-g.gain.setValueAtTime(0.6,audioCtx.currentTime);
-g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+1);
-src.connect(g); g.connect(audioCtx.destination);
-src.start();
+let o=audioCtx.createOscillator();
+o.frequency.value=200;
+o.connect(audioCtx.destination);
+o.start();
+o.stop(audioCtx.currentTime+1);
 }
 
 /* VARIABLES */
 let modoActual="";
-let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
 let bingoActivo=false;
+let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 
 /* UI */
 function mostrarModos(){
@@ -223,7 +238,6 @@ s.style.display=s.style.display==="block"?"none":"block";
 
 function seleccionarModo(){
 modoActual=document.getElementById("modoSelect").value;
-
 if(modoActual==="Personalizado"){
 document.getElementById("editorPatron").style.display="block";
 crearEditorPatron();
@@ -234,25 +248,22 @@ document.getElementById("editorPatron").style.display="none";
 
 /* PATRON */
 function crearEditorPatron(){
-let grid=document.getElementById("gridPatron");
-grid.innerHTML="";
+let g=document.getElementById("gridPatron");
+g.innerHTML="";
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
 let d=document.createElement("div");
 d.className="celda";
-if(i===2&&j===2){
-d.textContent="★";
-}else{
+if(i!==2||j!==2){
 d.onclick=()=>{
 patronPersonalizado[i][j]=!patronPersonalizado[i][j];
 d.classList.toggle("marcado");
 };
 }
-grid.appendChild(d);
+g.appendChild(d);
 }
 }
 }
-
 function guardarPatron(){
 document.getElementById("editorPatron").style.display="none";
 }
@@ -277,39 +288,16 @@ if(!modoActual) return false;
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
 switch(modoActual){
-
 case "Letra X":
-return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]]
-.every(([i,j])=>c(i,j));
-
-case "Letra L":
-return [...Array(5).keys()].every(i=>c(i,0)) &&
-[...Array(5).keys()].every(j=>c(4,j));
-
-case "Letra H":
-return [...Array(5).keys()].every(i=>c(i,0)&&c(i,4)) &&
-[...Array(5).keys()].every(j=>c(2,j));
-
-case "Letra T":
-return [...Array(5).keys()].every(j=>c(0,j)) &&
-[...Array(5).keys()].every(i=>c(i,2));
-
-case "Diagonal Izq":
-return [...Array(5).keys()].every(i=>c(i,i));
-
-case "Diagonal Der":
-return [...Array(5).keys()].every(i=>c(i,4-i));
-
+return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]].every(([i,j])=>c(i,j));
 case "4 Esquinas":
 return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
-
-case "Forma O":
-return [...Array(5).keys()].every(j=>c(0,j)&&c(4,j)) &&
-[1,2,3].every(i=>c(i,0)&&c(i,4));
-
+case "Diagonal Izq":
+return [...Array(5).keys()].every(i=>c(i,i));
+case "Diagonal Der":
+return [...Array(5).keys()].every(i=>c(i,4-i));
 case "Tabla Llena":
 return m.flat().every(v=>v);
-
 case "Personalizado":
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
@@ -317,46 +305,19 @@ if(patronPersonalizado[i][j]&&!c(i,j)) return false;
 }
 }
 return true;
-
 default:
 return false;
 }
 }
 
-/* CASI BINGO */
-function verificarCasiBingo(m){
+/* CASI */
+function verificarCasi(m){
 if(!modoActual) return false;
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
-let coords=[];
-
-switch(modoActual){
-case "Letra X":
-coords=[[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]];
-break;
-case "4 Esquinas":
-coords=[[0,0],[0,4],[4,0],[4,4]];
-break;
-case "Diagonal Izq":
-coords=[...Array(5).keys()].map(i=>[i,i]);
-break;
-case "Diagonal Der":
-coords=[...Array(5).keys()].map(i=>[i,4-i]);
-break;
-case "Tabla Llena":
-return m.flat().filter(v=>v).length===24;
-default:
-return false;
-}
-
+let coords=[[0,0],[1,1],[2,2],[3,3],[4,4]];
 let faltan=coords.filter(([i,j])=>!c(i,j)).length;
 return faltan===1;
-}
-
-function mostrarCasiBingo(){
-let a=document.getElementById("casiBingoAnim");
-a.style.display="block";
-setTimeout(()=>a.style.display="none",2000);
 }
 
 /* BINGO */
@@ -365,41 +326,19 @@ if(bingoActivo) return;
 bingoActivo=true;
 
 let b=document.getElementById("bingoAnim");
-let contenedor=document.querySelector(".contenedor");
-
 b.style.display="flex";
-contenedor.style.display="none";
-
 aplausos();
 
-setTimeout(()=>{
-b.style.display="none";
-contenedor.style.display="block";
-},4000);
+setTimeout(()=>b.style.display="none",4000);
 }
 
-/* TABLA */
-function generarTablaPorID(id){
-let tabla=[];
-for(let i=0;i<5;i++){
-tabla[i]=[];
-for(let j=0;j<5;j++){
-tabla[i][j]=Math.floor(Math.random()*75)+1;
-}
-}
-tabla[2][2]="T"+String(id).padStart(3,'0');
-return tabla;
-}
-
-/* PARAMS */
-document.getElementById("nombreJugador").textContent=params.get("nombres")||"";
-
+/* TABLAS */
 let ids=params.get("tablas").split(",");
-
-let contenedor=document.getElementById("tabla");
+let cont=document.getElementById("tabla");
 
 ids.forEach(id=>{
-let tabla=generarTablaPorID(id);
+let bloque=document.createElement("div");
+bloque.className="bloqueTabla";
 
 let grid=document.createElement("div");
 grid.className="tabla";
@@ -410,13 +349,16 @@ estados.push(estado);
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
+
 let d=document.createElement("div");
 d.className="celda";
-d.textContent=tabla[i][j];
 
 if(i===2&&j===2){
+d.textContent="T"+id.padStart(3,"0");
 d.classList.add("marcado","centro");
 }else{
+d.textContent=Math.floor(Math.random()*75)+1;
+
 d.onclick=()=>{
 beep();
 
@@ -425,7 +367,12 @@ estado[i][j]=d.classList.contains("marcado");
 
 if(!verificar(estado)) bingoActivo=false;
 
-if(verificarCasiBingo(estado)) mostrarCasiBingo();
+if(verificarCasi(estado)){
+let a=document.getElementById("casiBingoAnim");
+a.style.display="block";
+setTimeout(()=>a.style.display="none",1500);
+}
+
 if(verificar(estado)) mostrarBingo();
 };
 }
@@ -434,8 +381,10 @@ grid.appendChild(d);
 }
 }
 
-contenedor.appendChild(grid);
+bloque.appendChild(grid);
+cont.appendChild(bloque);
 });
+
 </script>
 </body>
 </html>
