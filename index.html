@@ -31,7 +31,7 @@ margin:auto;
 display:flex;
 flex-direction:column;
 align-items:center;
-gap:5px;
+gap:6px;
 }
 
 .botonModo{
@@ -45,13 +45,6 @@ cursor:pointer;
 font-weight:bold;
 }
 
-.selectModo{
-padding:6px;
-border-radius:8px;
-display:none;
-margin-top:5px;
-}
-
 .botonLimpiar{
 padding:5px 10px;
 font-size:13px;
@@ -59,6 +52,25 @@ background:#ff4444;
 color:white;
 border:none;
 border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.modos{
+display:none;
+flex-wrap:wrap;
+justify-content:center;
+gap:5px;
+max-width:360px;
+}
+
+.modos button{
+padding:5px 8px;
+font-size:12px;
+border:none;
+border-radius:6px;
+background:#00bfff;
+color:black;
 cursor:pointer;
 font-weight:bold;
 }
@@ -138,19 +150,20 @@ text-align:center;
 
 <button class="botonModo" onclick="mostrarModos()">Modo de juego</button>
 
-<select id="modoSelect" class="selectModo" onchange="seleccionarModo()">
-<option value="">-- Elegir modo --</option>
-<option>Letra X</option>
-<option>Letra L</option>
-<option>Letra H</option>
-<option>Letra T</option>
-<option>Diagonal Izq</option>
-<option>Diagonal Der</option>
-<option>4 Esquinas</option>
-<option>Forma O</option>
-<option>Tabla Llena</option>
-<option>Personalizado</option>
-</select>
+<div id="listaModos" class="modos">
+
+<button onclick="setModo('Letra X')">Letra X</button>
+<button onclick="setModo('Letra L')">Letra L</button>
+<button onclick="setModo('Letra H')">Letra H</button>
+<button onclick="setModo('Letra T')">Letra T</button>
+<button onclick="setModo('Diagonal Izq')">Diagonal Izq</button>
+<button onclick="setModo('Diagonal Der')">Diagonal Der</button>
+<button onclick="setModo('4 Esquinas')">4 Esquinas</button>
+<button onclick="setModo('Forma O')">Forma O</button>
+<button onclick="setModo('Tabla Llena')">Tabla Llena</button>
+<button onclick="setModo('Personalizado')">Personalizado</button>
+
+</div>
 
 <button class="botonLimpiar" onclick="limpiarTabla()">Limpiar tabla</button>
 
@@ -171,8 +184,6 @@ text-align:center;
 <div id="bingoAnim">🎉 BINGO 🎉</div>
 
 <script>
-
-// TABLA POR ID
 
 function generarTablaPorID(id){
 
@@ -223,48 +234,55 @@ return tabla;
 
 }
 
-// VARIABLES
-
 let modoActual="";
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
 
-// MOSTRAR MODOS
-
 function mostrarModos(){
 
-let sel=document.getElementById("modoSelect");
+let lista=document.getElementById("listaModos");
 
-sel.style.display = sel.style.display==="block" ? "none" : "block";
+lista.style.display = lista.style.display=="flex" ? "none" : "flex";
 
 }
 
-// SELECCIONAR MODO
+function setModo(m){
 
-function seleccionarModo(){
+modoActual=m;
 
-modoActual=document.getElementById("modoSelect").value;
-
-if(modoActual==="Personalizado"){
-
+if(m==="Personalizado"){
 document.getElementById("editorPatron").style.display="block";
-
 crearEditorPatron();
-
 }else{
+document.getElementById("editorPatron").style.display="none";
+}
 
+}
+
+function limpiarTabla(){
+
+document.querySelectorAll(".celda.marcado").forEach(c=>{
+c.classList.remove("marcado");
+});
+
+estados.forEach(tabla=>{
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+tabla[i][j]=false;
+}
+}
+});
+
+modoActual="";
+
+document.getElementById("listaModos").style.display="none";
 document.getElementById("editorPatron").style.display="none";
 
 }
 
-}
-
-// EDITOR PATRON
-
 function crearEditorPatron(){
 
 const grid=document.getElementById("gridPatron");
-
 grid.innerHTML="";
 
 for(let i=0;i<5;i++){
@@ -283,10 +301,8 @@ d.style.background="#ffd700";
 }else{
 
 d.onclick=()=>{
-
 patronPersonalizado[i][j]=!patronPersonalizado[i][j];
 d.classList.toggle("patron");
-
 };
 
 }
@@ -299,34 +315,12 @@ grid.appendChild(d);
 
 }
 
-// GUARDAR PATRON
-
 function guardarPatron(){
 
 document.getElementById("editorPatron").style.display="none";
 alert("Patrón guardado");
 
 }
-
-// LIMPIAR TABLA
-
-function limpiarTabla(){
-
-document.querySelectorAll(".celda.marcado").forEach(c=>{
-c.classList.remove("marcado");
-});
-
-estados.forEach(tabla=>{
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-tabla[i][j]=false;
-}
-}
-});
-
-}
-
-// VERIFICAR
 
 function verificar(m){
 
@@ -385,8 +379,6 @@ return false;
 
 }
 
-// ANIMACION
-
 function mostrarBingo(){
 
 let contenedor=document.querySelector(".contenedor");
@@ -402,31 +394,24 @@ contenedor.style.display="block";
 
 }
 
-// PARAMS
-
 const params=new URLSearchParams(window.location.search);
 
 const vence=params.get("vence");
 
 if(!vence){
-
 document.body.innerHTML="<h1 style='color:red;text-align:center;'>Link inválido</h1>";
 throw new Error();
-
 }
 
 const hoy=new Date();
 const fechaLimite=new Date(vence+"T23:59:59");
 
 if(hoy>fechaLimite){
-
 document.body.innerHTML="<h1 style='color:red;text-align:center;'>Tabla vencida</h1>";
 throw new Error();
-
 }
 
 const logoURL=params.get("logo");
-
 const logo=document.getElementById("logo");
 
 logo.src=logoURL
@@ -434,7 +419,6 @@ logo.src=logoURL
 : "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
 
 let lista=params.get("tablas");
-
 let ids=lista.split(",").map(n=>parseInt(n));
 
 const contenedor=document.getElementById("tabla");
@@ -446,16 +430,13 @@ let tabla=generarTablaPorID(id);
 let bloque=document.createElement("div");
 
 let titulo=document.createElement("div");
-
 titulo.textContent="TABLA T"+String(id).padStart(3,'0');
-
 titulo.style.color="#ffd700";
 titulo.style.marginBottom="5px";
 
 bloque.appendChild(titulo);
 
 let grid=document.createElement("div");
-
 grid.className="tabla";
 
 const letras=["B","I","N","G","O"];
