@@ -128,6 +128,11 @@ text-align:center;
 
 .bloqueTabla{
 margin-bottom:25px;
+padding:10px;
+border:2px solid #ffd700;
+border-radius:15px;
+box-shadow:0 0 15px rgba(255,215,0,0.4);
+background:rgba(255,255,255,0.03);
 }
 
 </style>
@@ -239,6 +244,7 @@ return tabla;
 let modoActual="";
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
+let bingoActivo=false;
 
 function mostrarModos(){
 let s=document.getElementById("modoSelect");
@@ -275,6 +281,9 @@ tabla[i][j]=false;
 modoActual="";
 document.getElementById("modoSelect").value="";
 document.getElementById("editorPatron").style.display="none";
+
+// 🔁 reset del bingo
+bingoActivo=false;
 
 }
 
@@ -377,6 +386,10 @@ return false;
 }
 
 function mostrarBingo(){
+
+if(bingoActivo) return; // 🚫 evita repetición
+
+bingoActivo=true;
 
 let contenedor=document.querySelector(".contenedor");
 let anim=document.getElementById("bingoAnim");
