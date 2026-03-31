@@ -307,7 +307,7 @@ tabla[i][j]=false;
 modoActual="";
 document.getElementById("modoSelect").value="";
 document.getElementById("editorPatron").style.display="none";
-bingoActivo=false;
+bingoDetectado=false;
 
 }
 
@@ -402,9 +402,9 @@ return false;
 
 function mostrarBingo(){
 
-if(bingoActivo) return;
+if(bingoDetectado) return;
 
-bingoActivo=true;
+bingoDetectado=true;
 
 let contenedor=document.querySelector(".contenedor");
 let anim=document.getElementById("bingoAnim");
