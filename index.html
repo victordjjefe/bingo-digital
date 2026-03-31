@@ -6,7 +6,6 @@
 <title>Mi Tabla Bingo</title>
 
 <style>
-
 body{
 margin:0;
 background: radial-gradient(circle,#1a0033,#000);
@@ -53,7 +52,6 @@ font-weight:bold;
 
 .botonModo{background:#ffd700;}
 .botonLimpiar{background:#ff4444;color:white;}
-
 .selectModo{display:none;}
 
 .contenedor{
@@ -107,32 +105,21 @@ animation:brillo 1.5s infinite alternate;
 100%{box-shadow:0 0 25px #0f0;}
 }
 
+/* 🔥 ANIMACION ORIGINAL FULL */
 #bingoAnim{
 position:fixed;
-top:40%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:50px;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
 display:none;
-color:#0f0;
+justify-content:center;
+align-items:center;
+font-size:60px;
+color:#00ff00;
+z-index:9999;
 }
-
-#casiBingoAnim{
-position:fixed;
-top:30%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:28px;
-display:none;
-color:#ffd700;
-animation:parpadeo .7s infinite alternate;
-}
-
-@keyframes parpadeo{
-0%{opacity:1;}
-100%{opacity:0.4;}
-}
-
 </style>
 </head>
 
@@ -178,31 +165,28 @@ animation:parpadeo .7s infinite alternate;
 </div>
 
 <div id="bingoAnim">🎉 BINGO 🎉</div>
-<div id="casiBingoAnim">⚠️ FALTA 1 PARA BINGO</div>
 
 <script>
 
-/* FECHA VENCIMIENTO */
+/* 🔥 FECHA */
 const params=new URLSearchParams(window.location.search);
 const vence=params.get("vence");
-
 if(vence){
 let hoy=new Date();
-let fechaVence=new Date(vence+"T23:59:59");
-if(hoy>fechaVence){
-document.body.innerHTML="<h2 style='color:red;text-align:center;margin-top:50px;'>⛔ TABLA VENCIDA</h2>";
-throw new Error("Vencido");
+let v=new Date(vence+"T23:59:59");
+if(hoy>v){
+document.body.innerHTML="<h1 style='color:red;text-align:center;margin-top:50px;'>⛔ VENCIDO</h1>";
+throw new Error();
 }
 }
 
-/* AUDIO */
+/* 🔊 AUDIO */
 let audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 
 function beep(){
 let o=audioCtx.createOscillator();
 let g=audioCtx.createGain();
-o.connect(g);
-g.connect(audioCtx.destination);
+o.connect(g); g.connect(audioCtx.destination);
 o.frequency.value=800;
 o.start();
 g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.15);
@@ -214,11 +198,10 @@ let data=buffer.getChannelData(0);
 for(let i=0;i<44100;i++){data[i]=Math.random()*2-1;}
 let src=audioCtx.createBufferSource();
 src.buffer=buffer;
-let gain=audioCtx.createGain();
-gain.gain.setValueAtTime(0.5,audioCtx.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+1);
-src.connect(gain);
-gain.connect(audioCtx.destination);
+let g=audioCtx.createGain();
+g.gain.setValueAtTime(0.6,audioCtx.currentTime);
+g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+1);
+src.connect(g); g.connect(audioCtx.destination);
 src.start();
 }
 
@@ -276,8 +259,33 @@ const c=(i,j)=>m[i][j]||(i===2&&j===2);
 switch(modoActual){
 
 case "Letra X":
-return c(0,0)&&c(1,1)&&c(2,2)&&c(3,3)&&c(4,4)&&
-c(0,4)&&c(1,3)&&c(3,1)&&c(4,0);
+return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]]
+.every(([i,j])=>c(i,j));
+
+case "Letra L":
+return [...Array(5).keys()].every(i=>c(i,0)) &&
+[...Array(5).keys()].every(j=>c(4,j));
+
+case "Letra H":
+return [...Array(5).keys()].every(i=>c(i,0)&&c(i,4)) &&
+[...Array(5).keys()].every(j=>c(2,j));
+
+case "Letra T":
+return [...Array(5).keys()].every(j=>c(0,j)) &&
+[...Array(5).keys()].every(i=>c(i,2));
+
+case "Diagonal Izq":
+return [...Array(5).keys()].every(i=>c(i,i));
+
+case "Diagonal Der":
+return [...Array(5).keys()].every(i=>c(i,4-i));
+
+case "4 Esquinas":
+return c(0,0)&&c(0,4)&&c(4,0)&&c(4,4);
+
+case "Forma O":
+return [...Array(5).keys()].every(j=>c(0,j)&&c(4,j)) &&
+[1,2,3].every(i=>c(i,0)&&c(i,4));
 
 case "Tabla Llena":
 return m.flat().every(v=>v);
@@ -295,85 +303,85 @@ return false;
 }
 }
 
-/* CASI BINGO REAL */
+/* 🔥 CASI BINGO BIEN */
 function verificarCasiBingo(m){
+
+if(!modoActual) return false;
+
 const c=(i,j)=>m[i][j]||(i===2&&j===2);
 
-if(modoActual==="Letra X"){
-let coords=[[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]];
-let faltan=0;
-coords.forEach(([i,j])=>{if(!c(i,j)) faltan++;});
-return faltan===1;
-}
+let coords=[];
 
-if(modoActual==="Tabla Llena"){
+switch(modoActual){
+case "Letra X":
+coords=[[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]];
+break;
+case "Letra L":
+coords=[...Array(5).keys()].map(i=>[i,0]).concat([...Array(5).keys()].map(j=>[4,j]));
+break;
+case "Letra H":
+coords=[...Array(5).keys()].flatMap(i=>[[i,0],[i,4]]).concat([...Array(5).keys()].map(j=>[2,j]));
+break;
+case "Letra T":
+coords=[...Array(5).keys()].map(j=>[0,j]).concat([...Array(5).keys()].map(i=>[i,2]));
+break;
+case "Diagonal Izq":
+coords=[...Array(5).keys()].map(i=>[i,i]);
+break;
+case "Diagonal Der":
+coords=[...Array(5).keys()].map(i=>[i,4-i]);
+break;
+case "4 Esquinas":
+coords=[[0,0],[0,4],[4,0],[4,4]];
+break;
+case "Forma O":
+coords=[...Array(5).keys()].map(j=>[0,j]).concat([...Array(5).keys()].map(j=>[4,j]));
+break;
+case "Tabla Llena":
 return m.flat().filter(v=>v).length===24;
+case "Personalizado":
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+if(patronPersonalizado[i][j]&&!c(i,j)) return false;
 }
-
+}
 return false;
 }
 
-function mostrarCasiBingo(){
-let a=document.getElementById("casiBingoAnim");
-a.style.display="block";
-setTimeout(()=>a.style.display="none",2000);
+let faltan=coords.filter(([i,j])=>!c(i,j)).length;
+return faltan===1;
 }
 
 /* BINGO */
 function mostrarBingo(){
 let b=document.getElementById("bingoAnim");
-b.style.display="block";
+b.style.display="flex";
 aplausos();
-setTimeout(()=>b.style.display="none",5000);
+setTimeout(()=>b.style.display="none",4000);
 }
 
-/* GENERAR TABLA ORIGINAL */
-function generarTablaPorID(id){
-let seed=12345;
-function random(){
-seed=(seed*9301+49297)%233280;
-return seed/233280;
-}
-function randomUnique(min,max,count){
-let nums=[];
-while(nums.length<count){
-let n=Math.floor(random()*(max-min+1))+min;
-if(!nums.includes(n)) nums.push(n);
-}
-return nums;
-}
-let tabla;
-for(let t=1;t<=id;t++){
-let B=randomUnique(1,15,5);
-let I=randomUnique(16,30,5);
-let N=randomUnique(31,45,5);
-let G=randomUnique(46,60,5);
-let O=randomUnique(61,75,5);
-tabla=[];
+/* TABLA */
+function generarTabla(){
+let tabla=[];
 for(let i=0;i<5;i++){
-tabla[i]=[B[i],I[i],N[i],G[i],O[i]];
+tabla[i]=[];
+for(let j=0;j<5;j++){
+tabla[i][j]=Math.floor(Math.random()*75)+1;
 }
-tabla[2][2]="T"+String(t).padStart(3,'0');
 }
+tabla[2][2]="FREE";
 return tabla;
 }
 
 /* PARAMS */
-const logoURL=params.get("logo");
-document.getElementById("logo").src=logoURL
-? "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/"+logoURL+".png"
-: "https://raw.githubusercontent.com/victordjjefe/bingo-digital/main/laterraza.png";
-
 document.getElementById("nombreJugador").textContent=params.get("nombres")||"";
 
 let ids=params.get("tablas").split(",");
 
 let contenedor=document.getElementById("tabla");
 
-/* CREAR TABLAS */
-ids.forEach(id=>{
-
-let tabla=generarTablaPorID(id);
+ids.forEach(()=>{
+let tabla=generarTabla();
 
 let bloque=document.createElement("div");
 bloque.className="bloqueTabla";
@@ -390,7 +398,6 @@ grid.appendChild(d);
 
 let estado=Array(5).fill().map(()=>Array(5).fill(false));
 estado[2][2]=true;
-estados.push(estado);
 
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
@@ -407,8 +414,6 @@ beep();
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
 
-if(verificarCasiBingo(estado)) mostrarCasiBingo();
-
 if(verificar(estado)) mostrarBingo();
 };
 }
@@ -419,10 +424,8 @@ grid.appendChild(d);
 
 bloque.appendChild(grid);
 contenedor.appendChild(bloque);
-
 });
 
 </script>
-
 </body>
 </html>
