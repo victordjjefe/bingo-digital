@@ -141,7 +141,7 @@ animation: brilloCentro 1.5s infinite alternate;
 100%{ box-shadow:0 0 25px #00ff00; }
 }
 
-/* 🔥 BINGO FULL SCREEN */
+/* BINGO FULL */
 #bingoAnim{
 position:fixed;
 top:0;
@@ -172,7 +172,6 @@ animation:parpadeo .7s infinite alternate;
 0%{opacity:1;}
 100%{opacity:0.4;}
 }
-
 </style>
 </head>
 
@@ -222,7 +221,7 @@ animation:parpadeo .7s infinite alternate;
 
 <script>
 
-/* FECHA */
+/* VENCIMIENTO (NO TOCADO) */
 const params=new URLSearchParams(window.location.search);
 const vence=params.get("vence");
 if(vence){
@@ -263,6 +262,7 @@ src.start();
 let modoActual="";
 let patronPersonalizado=Array(5).fill().map(()=>Array(5).fill(false));
 let estados=[];
+let bingoActivo=false;
 
 /* UI */
 function mostrarModos(){
@@ -281,83 +281,37 @@ document.getElementById("editorPatron").style.display="none";
 }
 }
 
-/* PATRON */
-function crearEditorPatron(){
-let grid=document.getElementById("gridPatron");
-grid.innerHTML="";
+/* LIMPIAR */
+function limpiarTabla(){
+
+document.querySelectorAll(".celda.marcado").forEach(c=>{
+if(!c.classList.contains("centro")){
+c.classList.remove("marcado");
+}
+});
+
+estados.forEach(tabla=>{
 for(let i=0;i<5;i++){
 for(let j=0;j<5;j++){
-let d=document.createElement("div");
-d.className="celda";
-if(i===2&&j===2){
-d.textContent="★";
-}else{
-d.onclick=()=>{
-patronPersonalizado[i][j]=!patronPersonalizado[i][j];
-d.classList.toggle("patron");
-};
-}
-grid.appendChild(d);
+tabla[i][j]=false;
 }
 }
-}
+tabla[2][2]=true;
+});
 
-function guardarPatron(){
-document.getElementById("editorPatron").style.display="none";
-}
+bingoActivo=false;
 
-/* VERIFICAR */
-function verificar(m){
-const c=(i,j)=>m[i][j]||(i===2&&j===2);
-
-switch(modoActual){
-case "Letra X":
-return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]]
-.every(([i,j])=>c(i,j));
-case "Tabla Llena":
-return m.flat().every(v=>v);
-case "Personalizado":
-for(let i=0;i<5;i++){
-for(let j=0;j<5;j++){
-if(patronPersonalizado[i][j]&&!c(i,j)) return false;
-}
-}
-return true;
-default:
-return false;
-}
-}
-
-/* CASI BINGO */
-function verificarCasiBingo(m){
-if(!modoActual) return false;
-
-const c=(i,j)=>m[i][j]||(i===2&&j===2);
-
-let coords=[];
-
-switch(modoActual){
-case "Letra X":
-coords=[[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]];
-break;
-case "Tabla Llena":
-return m.flat().filter(v=>v).length===24;
-default:
-return false;
-}
-
-let faltan=coords.filter(([i,j])=>!c(i,j)).length;
-return faltan===1;
-}
-
-function mostrarCasiBingo(){
-let a=document.getElementById("casiBingoAnim");
-a.style.display="block";
-setTimeout(()=>a.style.display="none",2000);
+document.getElementById("bingoAnim").style.display="none";
+document.querySelector(".contenedor").style.display="block";
 }
 
 /* BINGO */
 function mostrarBingo(){
+
+if(bingoActivo) return;
+
+bingoActivo=true;
+
 let b=document.getElementById("bingoAnim");
 let contenedor=document.querySelector(".contenedor");
 
@@ -457,7 +411,9 @@ beep();
 d.classList.toggle("marcado");
 estado[i][j]=d.classList.contains("marcado");
 
-if(verificarCasiBingo(estado)) mostrarCasiBingo();
+if(!verificar(estado)){
+bingoActivo=false;
+}
 
 if(verificar(estado)) mostrarBingo();
 };
@@ -471,6 +427,28 @@ bloque.appendChild(grid);
 contenedor.appendChild(bloque);
 
 });
+
+/* VERIFICAR */
+function verificar(m){
+const c=(i,j)=>m[i][j]||(i===2&&j===2);
+
+switch(modoActual){
+case "Letra X":
+return [[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]]
+.every(([i,j])=>c(i,j));
+case "Tabla Llena":
+return m.flat().every(v=>v);
+case "Personalizado":
+for(let i=0;i<5;i++){
+for(let j=0;j<5;j++){
+if(patronPersonalizado[i][j]&&!c(i,j)) return false;
+}
+}
+return true;
+default:
+return false;
+}
+}
 
 </script>
 
